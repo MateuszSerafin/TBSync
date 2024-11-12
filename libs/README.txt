@@ -1,0 +1,2 @@
+This folder just contains downloaded mods it probably violates licenses if i would just push jars to git
+From Astral Sorcery github - "only the original authoror modpacks may distribute compiled binary versions of this code."

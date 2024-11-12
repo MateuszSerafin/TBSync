@@ -4,7 +4,7 @@ import com.google.gson.internal.LinkedTreeMap;
 import pl.techblock.sync.TBSync;
 import pl.techblock.sync.logic.enums.PlayerSync;
 import pl.techblock.sync.logic.interfaces.IPlayerSync;
-import pl.techblock.sync.mods.players.Test;
+import pl.techblock.sync.mods.players.AstralResearch;
 import java.util.Map;
 import java.util.UUID;
 
@@ -12,7 +12,7 @@ public class PlayerManager {
     private static Map<PlayerSync, IPlayerSync> IPlayerSyncMap = new LinkedTreeMap<>();
 
     public static void innit(){
-        IPlayerSyncMap.put(PlayerSync.TEST, new Test());
+        IPlayerSyncMap.put(PlayerSync.AstralResearch, new AstralResearch());
     }
 
     public static void saveAll(UUID playerUUID){
