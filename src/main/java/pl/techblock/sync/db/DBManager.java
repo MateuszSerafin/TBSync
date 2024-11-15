@@ -40,4 +40,8 @@ public class DBManager {
             throw e;
         }
     }
+
+    public static Connection getConnectionForNonStandardQuery() {
+        return connection;
+    }
 }

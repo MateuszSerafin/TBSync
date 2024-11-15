@@ -3,7 +3,7 @@
   "package": "pl.techblock.sync.mixins",
   "compatibilityLevel": "JAVA_8",
   "refmap": "tbsync.refmap.json",
-  "mixins": ["AstralResearchInvoker"],
+  "mixins": ["AstralResearchInvoker", "FluxNetworksMixin"],
   "client": [],
   "injectors": {
     "defaultRequire": 1
