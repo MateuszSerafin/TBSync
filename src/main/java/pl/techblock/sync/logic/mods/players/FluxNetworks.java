@@ -1,11 +1,13 @@
-package pl.techblock.sync.mods.players;
+package pl.techblock.sync.logic.mods.players;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.CompressedStreamTools;
 import pl.techblock.sync.TBSync;
 import pl.techblock.sync.db.DBManager;
 import pl.techblock.sync.logic.interfaces.IPlayerSync;
-import pl.techblock.sync.mods.duckinterfaces.IFluxNetworksCustom;
+import pl.techblock.sync.logic.mods.duckinterfaces.IFluxNetworksCustom;
+import sonar.fluxnetworks.api.network.IFluxNetwork;
 import sonar.fluxnetworks.common.storage.FluxNetworkData;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -95,6 +97,27 @@ public class FluxNetworks implements IPlayerSync {
         } catch (Exception e){
             TBSync.getLOGGER().error("Problem with FluxNetworks while loading data");
             e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void cleanup(UUID playerUUID) {
+        //this is actually implemented correctly
+        //we remove network and leave it in state where actual blocks still are connected to the network but it doesn't exist
+        //after loading and reloading chunk it will work normally, idea is network can be loaded only on one server at a time
+
+        List<Integer> toDelete = new ArrayList<>();
+
+        IFluxNetworksCustom instance = (IFluxNetworksCustom) FluxNetworkData.get();
+
+        for (Int2ObjectMap.Entry<IFluxNetwork> iFluxNetworkEntry : instance.getNetworks().int2ObjectEntrySet()) {
+            UUID owner = iFluxNetworkEntry.getValue().getOwnerUUID();
+            if(!owner.equals(playerUUID)) continue;
+            toDelete.add(iFluxNetworkEntry.getIntKey());
+        }
+
+        for (Integer i : toDelete) {
+            instance.getNetworks().remove(i);
         }
     }
 }

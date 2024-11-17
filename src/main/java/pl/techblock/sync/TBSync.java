@@ -10,6 +10,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import pl.techblock.sync.commands.DebugCleanUpPlayer;
 import pl.techblock.sync.commands.DebugLoadPlayer;
 import pl.techblock.sync.commands.DebugSavePlayer;
 import pl.techblock.sync.db.DBManager;
@@ -39,6 +40,7 @@ public class TBSync {
     public static void onRegisterCommandEvent(RegisterCommandsEvent event) {
         new DebugLoadPlayer(event.getDispatcher());
         new DebugSavePlayer(event.getDispatcher());
+        new DebugCleanUpPlayer(event.getDispatcher());
     }
 
     public static Logger getLOGGER() {

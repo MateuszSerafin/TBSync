@@ -1,11 +1,11 @@
-package pl.techblock.sync.mods.players;
+package pl.techblock.sync.logic.mods.players;
 
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.CompressedStreamTools;
 import pl.techblock.sync.TBSync;
 import pl.techblock.sync.db.DBManager;
 import pl.techblock.sync.logic.interfaces.IPlayerSync;
-import pl.techblock.sync.mixins.AstralResearchInvoker;
+import pl.techblock.sync.mixins.AstralResearchAccess;
 import java.io.*;
 import java.sql.Blob;
 import java.util.UUID;
@@ -22,7 +22,7 @@ public class AstralResearch implements IPlayerSync {
     public void saveToDB(UUID playerUUID) {
         try {
             CompoundNBT tag = new CompoundNBT();
-            AstralResearchInvoker.getProgress(playerUUID).store(tag);
+            AstralResearchAccess.getProgress(playerUUID).store(tag);
 
 
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -52,12 +52,18 @@ public class AstralResearch implements IPlayerSync {
             }
 
             CompoundNBT tag = CompressedStreamTools.readCompressed(blob.getBinaryStream());
-            AstralResearchInvoker.load_unsafeFromNBT(playerUUID, tag);
+            AstralResearchAccess.load_unsafeFromNBT(playerUUID, tag);
 
             blob.free();
         } catch (Exception e){
             TBSync.getLOGGER().error("Problem with AstralResearch while loading data");
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void cleanup(UUID playerUUID) {
+        //I would need like 5 mixins to do it correctly, if that will cause issues will fix
+        AstralResearchAccess.getProgress().remove(playerUUID);
     }
 }

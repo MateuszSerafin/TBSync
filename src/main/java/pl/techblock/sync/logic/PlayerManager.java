@@ -4,8 +4,8 @@ import com.google.gson.internal.LinkedTreeMap;
 import pl.techblock.sync.TBSync;
 import pl.techblock.sync.logic.enums.PlayerSync;
 import pl.techblock.sync.logic.interfaces.IPlayerSync;
-import pl.techblock.sync.mods.players.AstralResearch;
-import pl.techblock.sync.mods.players.FluxNetworks;
+import pl.techblock.sync.logic.mods.players.AstralResearch;
+import pl.techblock.sync.logic.mods.players.FluxNetworks;
 import java.util.Map;
 import java.util.UUID;
 
@@ -39,6 +39,19 @@ public class PlayerManager {
                 IPlayerSync.loadFromDB(playerUUID);
             } catch (Exception e){
                 TBSync.getLOGGER().error(String.format("Tried to load player data for %s but failed", playerSync.toString()));
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static void cleanUpAll(UUID playerUUID){
+        for (Map.Entry<PlayerSync, IPlayerSync> playerSyncIPlayerSyncEntry : IPlayerSyncMap.entrySet()) {
+            PlayerSync playerSync =  playerSyncIPlayerSyncEntry.getKey();
+            IPlayerSync IPlayerSync = playerSyncIPlayerSyncEntry.getValue();
+            try {
+                IPlayerSync.cleanup(playerUUID);
+            } catch (Exception e){
+                TBSync.getLOGGER().error(String.format("Tried to cleanup player data for %s but failed", playerSync.toString()));
                 e.printStackTrace();
             }
         }
