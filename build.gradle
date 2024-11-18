@@ -107,6 +107,7 @@ dependencies {
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
     compileOnly files("./libs/astralsorcery-1.16.5-1.14.1.jar")
     compileOnly files("./libs/FluxNetworks-1.16.5-6.2.1.14.jar")
+    compileOnly files("./libs/CosmeticArmorReworked-1.16.5-v5a.jar")
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

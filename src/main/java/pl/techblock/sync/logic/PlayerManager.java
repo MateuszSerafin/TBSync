@@ -5,6 +5,7 @@ import pl.techblock.sync.TBSync;
 import pl.techblock.sync.logic.enums.PlayerSync;
 import pl.techblock.sync.logic.interfaces.IPlayerSync;
 import pl.techblock.sync.logic.mods.players.AstralResearch;
+import pl.techblock.sync.logic.mods.players.CosmeticArmor;
 import pl.techblock.sync.logic.mods.players.FluxNetworks;
 import java.util.Map;
 import java.util.UUID;
@@ -15,6 +16,7 @@ public class PlayerManager {
     public static void innit(){
         IPlayerSyncMap.put(PlayerSync.AstralResearch, new AstralResearch());
         IPlayerSyncMap.put(PlayerSync.FluxNetworks, new FluxNetworks());
+        IPlayerSyncMap.put(PlayerSync.CosmeticArmor, new CosmeticArmor());
     }
 
     public static void saveAll(UUID playerUUID){

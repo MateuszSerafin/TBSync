@@ -26,12 +26,14 @@ import java.util.Map;
 import java.util.UUID;
 
 @Mixin(FluxNetworkData.class)
-public class FluxNetworksMixin extends WorldSavedData implements IFluxNetworksCustom {
+public abstract class FluxNetworksMixin extends WorldSavedData implements IFluxNetworksCustom {
 
     public FluxNetworksMixin(String p_i2141_1_) {
         super(p_i2141_1_);
     }
 
+
+    @Shadow
     private final Int2ObjectMap<IFluxNetwork> networks = new Int2ObjectOpenHashMap<>();
 
     @Unique

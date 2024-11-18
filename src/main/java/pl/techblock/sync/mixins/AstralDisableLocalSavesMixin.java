@@ -6,7 +6,7 @@ import org.spongepowered.asm.mixin.Overwrite;
 import java.util.UUID;
 
 @Mixin(ResearchHelper.class)
-public class AstralDisableLocalSavesMixin {
+public abstract class AstralDisableLocalSavesMixin {
 
     @Overwrite
     private static void savePlayerKnowledge(UUID pUUID, boolean force){
