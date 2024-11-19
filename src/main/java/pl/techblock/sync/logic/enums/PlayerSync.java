@@ -3,5 +3,6 @@ package pl.techblock.sync.logic.enums;
 public enum PlayerSync {
     AstralResearch,
     FluxNetworks,
-    CosmeticArmor;
+    CosmeticArmor,
+    FuturePack;
 }

@@ -3,7 +3,7 @@
   "package": "pl.techblock.sync.mixins",
   "compatibilityLevel": "JAVA_8",
   "refmap": "tbsync.refmap.json",
-  "mixins": ["AstralDisableLocalSavesMixin", "AstralResearchAccess", "FluxNetworksMixin", "CosmeticArmorMixin"],
+  "mixins": ["AstralDisableLocalSavesMixin", "AstralResearchAccess", "FluxNetworksMixin", "CosmeticArmorMixin", "FuturePackMixin"],
   "client": [],
   "injectors": {
     "defaultRequire": 1
