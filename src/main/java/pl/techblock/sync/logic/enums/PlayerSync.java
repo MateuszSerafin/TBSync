@@ -4,5 +4,7 @@ public enum PlayerSync {
     AstralResearch,
     FluxNetworks,
     CosmeticArmor,
-    FuturePack;
+    FuturePack,
+    FTBKnownPlayer,
+    FTBParty;
 }

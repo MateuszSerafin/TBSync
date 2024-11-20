@@ -4,10 +4,7 @@ import com.google.gson.internal.LinkedTreeMap;
 import pl.techblock.sync.TBSync;
 import pl.techblock.sync.logic.enums.PlayerSync;
 import pl.techblock.sync.logic.interfaces.IPlayerSync;
-import pl.techblock.sync.logic.mods.players.AstralResearch;
-import pl.techblock.sync.logic.mods.players.CosmeticArmor;
-import pl.techblock.sync.logic.mods.players.FluxNetworks;
-import pl.techblock.sync.logic.mods.players.FuturePack;
+import pl.techblock.sync.logic.mods.players.*;
 import java.util.Map;
 import java.util.UUID;
 
@@ -19,6 +16,8 @@ public class PlayerManager {
         IPlayerSyncMap.put(PlayerSync.FluxNetworks, new FluxNetworks());
         IPlayerSyncMap.put(PlayerSync.CosmeticArmor, new CosmeticArmor());
         IPlayerSyncMap.put(PlayerSync.FuturePack, new FuturePack());
+        IPlayerSyncMap.put(PlayerSync.FTBKnownPlayer, new FTBKnownPlayer());
+        IPlayerSyncMap.put(PlayerSync.FTBParty, new FTBParty());
     }
 
     public static void saveAll(UUID playerUUID){

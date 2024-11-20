@@ -41,6 +41,17 @@ public class DBManager {
         }
     }
 
+    public static void delete(String userID, String table) throws SQLException {
+        String query = "DELETE FROM " + table + " WHERE userID = ?";
+
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, userID);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw e;
+        }
+    }
+
     public static Connection getConnectionForNonStandardQuery() {
         return connection;
     }
