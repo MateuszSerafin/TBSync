@@ -6,5 +6,6 @@ public enum PlayerSync {
     CosmeticArmor,
     FuturePack,
     FTBKnownPlayer,
-    FTBParty;
+    FTBParty,
+    FTBQuests;
 }
