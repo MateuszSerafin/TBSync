@@ -112,6 +112,8 @@ dependencies {
     compileOnly files("./libs/ftb-library-forge-1605.3.4-build.90.jar");
     compileOnly files("./libs/ftb-teams-forge-1605.2.3-build.40.jar")
     compileOnly files("./libs/ftb-quests-forge-1605.3.7-build.165.jar")
+    compileOnly files("./libs/CodeChickenLib-1.16.5-4.0.7.445-universal.jar")
+    compileOnly files("./libs/EnderStorage-1.16.5-2.8.0.170-universal.jar")
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

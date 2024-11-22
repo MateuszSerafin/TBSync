@@ -7,5 +7,6 @@ public enum PlayerSync {
     FuturePack,
     FTBKnownPlayer,
     FTBParty,
-    FTBQuests;
+    FTBQuests,
+    EnderStorage;
 }
