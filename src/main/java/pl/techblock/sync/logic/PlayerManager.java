@@ -20,6 +20,7 @@ public class PlayerManager {
         IPlayerSyncMap.put(PlayerSync.FTBParty, new FTBParty());
         IPlayerSyncMap.put(PlayerSync.FTBQuests, new FTBQuests());
         IPlayerSyncMap.put(PlayerSync.EnderStorage, new EnderStorage());
+        IPlayerSyncMap.put(PlayerSync.EnderChests, new EnderChests());
     }
 
     public static void saveAll(UUID playerUUID){

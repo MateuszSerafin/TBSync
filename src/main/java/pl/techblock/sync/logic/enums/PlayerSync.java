@@ -8,5 +8,6 @@ public enum PlayerSync {
     FTBKnownPlayer,
     FTBParty,
     FTBQuests,
-    EnderStorage;
+    EnderStorage,
+    EnderChests;
 }
