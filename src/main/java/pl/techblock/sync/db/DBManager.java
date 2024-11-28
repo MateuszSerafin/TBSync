@@ -2,6 +2,7 @@ package pl.techblock.sync.db;
 
 import pl.techblock.sync.TBSyncConfig;
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.io.InputStream;
 import java.sql.*;
 
@@ -13,12 +14,21 @@ public class DBManager {
         connection = DriverManager.getConnection(TBSyncConfig.JBDCString.get());
     }
 
-    @Nullable
-    public static Blob select(String userID, String table) throws SQLException {
-        String query = "SELECT data FROM " + table + " WHERE userID = ?";
+    public static void createTable(String tableName) throws SQLException{
+        String query = "CREATE TABLE " + tableName + " (key nvarchar(255) PRIMARY KEY, value blob(65535))";
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setString(1, userID);
+            ps.execute();
+        }
+    }
+
+
+    @Nullable
+    public static Blob selectBlob(String key, String tableName) throws SQLException {
+        String query = "SELECT value FROM " + tableName + " WHERE key = ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setString(1, key);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return rs.getBlob(1);
@@ -29,23 +39,25 @@ public class DBManager {
         }
     }
 
-    public static void upsert(String userID, String table, InputStream inputStream) throws SQLException {
-        String query = "INSERT INTO " + table + " (userID, data) VALUES (?, ?) ON DUPLICATE KEY UPDATE data = VALUES(data)";
+    public static void upsertBlob(String key, String tableName, InputStream inputStream) throws SQLException, IOException {
+        String query = "INSERT INTO " + tableName + " (key, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = VALUES(value)";
 
         try (PreparedStatement statement = connection.prepareStatement(query)) {
-            statement.setString(1, userID);
+            statement.setString(1, key);
             statement.setBlob(2, inputStream);
             statement.executeUpdate();
         } catch (SQLException e) {
             throw e;
+        } finally {
+            inputStream.close();
         }
     }
 
-    public static void delete(String userID, String table) throws SQLException {
-        String query = "DELETE FROM " + table + " WHERE userID = ?";
+    public static void deleteByKey(String key, String tableName) throws SQLException {
+        String query = "DELETE FROM " + tableName + " WHERE key = ?";
 
         try (PreparedStatement statement = connection.prepareStatement(query)) {
-            statement.setString(1, userID);
+            statement.setString(1, key);
             statement.executeUpdate();
         } catch (SQLException e) {
             throw e;

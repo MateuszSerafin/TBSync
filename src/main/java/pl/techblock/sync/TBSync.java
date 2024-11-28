@@ -10,11 +10,12 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import pl.techblock.sync.commands.DebugCleanUpPlayer;
-import pl.techblock.sync.commands.DebugLoadPlayer;
-import pl.techblock.sync.commands.DebugSavePlayer;
+import pl.techblock.sync.commands.DebugPlayers;
+import pl.techblock.sync.commands.DebugWorlds;
 import pl.techblock.sync.db.DBManager;
-import pl.techblock.sync.logic.PlayerManager;
+import pl.techblock.sync.api.PlayerManager;
+import pl.techblock.sync.api.WorldManager;
+
 import java.sql.SQLException;
 
 @Mod("tbsync")
@@ -30,7 +31,8 @@ public class TBSync {
     private void setup(FMLCommonSetupEvent event){
         try {
             DBManager.init();
-            PlayerManager.innit();
+            PlayerManager.init();
+            WorldManager.init();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -38,9 +40,8 @@ public class TBSync {
 
     @SubscribeEvent
     public static void onRegisterCommandEvent(RegisterCommandsEvent event) {
-        new DebugLoadPlayer(event.getDispatcher());
-        new DebugSavePlayer(event.getDispatcher());
-        new DebugCleanUpPlayer(event.getDispatcher());
+        new DebugPlayers(event.getDispatcher());
+        new DebugWorlds(event.getDispatcher());
     }
 
     public static Logger getLOGGER() {

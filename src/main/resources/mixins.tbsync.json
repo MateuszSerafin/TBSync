@@ -3,7 +3,25 @@
   "package": "pl.techblock.sync.mixins",
   "compatibilityLevel": "JAVA_8",
   "refmap": "tbsync.refmap.json",
-  "mixins": ["AstralDisableLocalSavesMixin", "AstralResearchAccess", "FluxNetworksMixin", "CosmeticArmorMixin", "FuturePackMixin", "FTBTeamsMixin", "FTBTeamMixin", "FTBPartyTeamMixin", "FTBTeamBaseMixin", "FTBServerQuestMixin", "EnderStorageMixin", "EnderChestsAccess", "EnderChestsMixin", "EnderTanksAccess", "EnderTanksMixin"],
+  "mixins": [
+    "astral.AstralDisableLocalSavesMixin",
+    "astral.AstralResearchAccess",
+    "fluxnetworks.FluxNetworksMixin",
+    "cosmeticarmor.CosmeticArmorMixin",
+    "futurepack.FuturePackMixin",
+    "ftb.FTBTeamsMixin",
+    "ftb.FTBTeamMixin",
+    "ftb.FTBPartyTeamMixin",
+    "ftb.FTBTeamBaseMixin",
+    "ftb.quests.FTBServerQuestMixin",
+    "ftb.quests.FTBTeamDataMixin",
+    "enderstorage.EnderStorageMixin",
+    "enderchests.EnderChestsAccess",
+    "enderchests.EnderChestsMixin",
+    "endertanks.EnderTanksAccess",
+    "endertanks.EnderTanksMixin",
+    "xnet.XNetBlobDataMixin"
+  ],
   "client": [],
   "injectors": {
     "defaultRequire": 1
