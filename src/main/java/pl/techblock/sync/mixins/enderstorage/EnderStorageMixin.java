@@ -7,7 +7,7 @@ import net.minecraft.nbt.CompoundNBT;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
-import pl.techblock.sync.logic.mods.duckinterfaces.IEnderStorageCustom;
+import pl.techblock.sync.logic.enderstorage.IEnderStorageCustom;
 import java.util.List;
 import java.util.Map;
 

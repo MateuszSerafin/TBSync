@@ -1,4 +1,4 @@
-package pl.techblock.sync.logic.mods.duckinterfaces;
+package pl.techblock.sync.logic.futurepack;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;

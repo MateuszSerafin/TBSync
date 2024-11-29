@@ -12,7 +12,6 @@ import net.minecraft.nbt.ListNBT;
 import pl.techblock.sync.TBSync;
 import pl.techblock.sync.db.DBManager;
 import pl.techblock.sync.api.interfaces.IPlayerSync;
-import pl.techblock.sync.logic.mods.duckinterfaces.IEnderStorageCustom;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -32,7 +31,7 @@ public class EnderStorage implements IPlayerSync {
     }
 
     public EnderStorage() {
-
+        DBManager.createTable(tableName);
     }
 
     @Override
@@ -69,7 +68,7 @@ public class EnderStorage implements IPlayerSync {
 
             byte[] compressedData = bos.toByteArray();
             ByteArrayInputStream bis = new ByteArrayInputStream(compressedData);
-            DBManager.upsert(playerUUID.toString(), tableName, bis);
+            DBManager.upsertBlob(playerUUID.toString(), tableName, bis);
 
             bis.close();
         } catch (Exception e){
@@ -81,7 +80,7 @@ public class EnderStorage implements IPlayerSync {
     @Override
     public void loadFromDB(UUID playerUUID) {
         try {
-            Blob blob = DBManager.select(playerUUID.toString(), tableName);
+            Blob blob = DBManager.selectBlob(playerUUID.toString(), tableName);
             if(blob == null){
                 return;
             }

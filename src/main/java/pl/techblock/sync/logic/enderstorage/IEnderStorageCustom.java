@@ -1,4 +1,4 @@
-package pl.techblock.sync.logic.mods.duckinterfaces;
+package pl.techblock.sync.logic.enderstorage;
 
 import codechicken.enderstorage.api.AbstractEnderStorage;
 import codechicken.enderstorage.manager.EnderStorageManager;

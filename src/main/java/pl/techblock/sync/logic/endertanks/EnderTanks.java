@@ -21,7 +21,7 @@ public class EnderTanks implements IPlayerSync {
     private String tableName = "EnderTanks";
 
     public EnderTanks(){
-
+        DBManager.createTable(tableName);
     }
 
     @Override
@@ -45,7 +45,7 @@ public class EnderTanks implements IPlayerSync {
 
         byte[] compressedData = bos.toByteArray();
         ByteArrayInputStream bis = new ByteArrayInputStream(compressedData);
-        DBManager.upsert(playerUUID.toString(), tableName, bis);
+        DBManager.upsertBlob(playerUUID.toString(), tableName, bis);
         bis.close();
         }
         catch (Exception e){
@@ -57,7 +57,7 @@ public class EnderTanks implements IPlayerSync {
     @Override
     public void loadFromDB(UUID playerUUID) {
         try {
-            Blob blob = DBManager.select(playerUUID.toString(), tableName);
+            Blob blob = DBManager.selectBlob(playerUUID.toString(), tableName);
             if(blob == null){
                 return;
             }

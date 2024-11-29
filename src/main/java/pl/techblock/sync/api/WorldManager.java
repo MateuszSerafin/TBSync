@@ -4,7 +4,7 @@ import com.google.gson.internal.LinkedTreeMap;
 import pl.techblock.sync.TBSync;
 import pl.techblock.sync.api.enums.WorldSync;
 import pl.techblock.sync.api.interfaces.IWorldSync;
-import pl.techblock.sync.logic.mods.worlds.XNetBlob;
+import pl.techblock.sync.logic.xnet.XNetBlob;
 import java.util.Map;
 
 //there is assumption that world names do not change, so if you change server

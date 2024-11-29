@@ -21,7 +21,7 @@ public class EnderChests implements IPlayerSync {
     private String tableName = "EnderChests";
 
     public EnderChests() {
-
+        DBManager.createTable(tableName);
     }
 
     @Override
@@ -59,7 +59,7 @@ public class EnderChests implements IPlayerSync {
 
             byte[] compressedData = bos.toByteArray();
             ByteArrayInputStream bis = new ByteArrayInputStream(compressedData);
-            DBManager.upsert(playerUUID.toString(), tableName, bis);
+            DBManager.upsertBlob(playerUUID.toString(), tableName, bis);
             bis.close();
         }
         catch (Exception e){
@@ -72,7 +72,7 @@ public class EnderChests implements IPlayerSync {
     public void loadFromDB(UUID playerUUID) {
         CompoundNBT tag = null;
         try {
-            Blob blob = DBManager.select(playerUUID.toString(), tableName);
+            Blob blob = DBManager.selectBlob(playerUUID.toString(), tableName);
             if(blob == null){
                 return;
             }

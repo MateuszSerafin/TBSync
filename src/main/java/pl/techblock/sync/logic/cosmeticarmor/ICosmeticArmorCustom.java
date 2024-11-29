@@ -1,4 +1,4 @@
-package pl.techblock.sync.logic.mods.duckinterfaces;
+package pl.techblock.sync.logic.cosmeticarmor;
 
 import net.minecraft.nbt.CompoundNBT;
 import java.util.UUID;

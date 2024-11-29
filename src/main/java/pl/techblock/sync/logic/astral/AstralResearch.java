@@ -15,7 +15,7 @@ public class AstralResearch implements IPlayerSync {
     private String tableName = "AstralResearch";
 
     public AstralResearch(){
-
+        DBManager.createTable(tableName);
     }
 
     @Override
@@ -24,16 +24,14 @@ public class AstralResearch implements IPlayerSync {
             CompoundNBT tag = new CompoundNBT();
             AstralResearchAccess.getProgress(playerUUID).store(tag);
 
-
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             try (OutputStream saveTo = new BufferedOutputStream(bos)) {
                 CompressedStreamTools.writeCompressed(tag, saveTo);
             }
 
-
             byte[] compressedData = bos.toByteArray();
             ByteArrayInputStream bis = new ByteArrayInputStream(compressedData);
-            DBManager.upsert(playerUUID.toString(), tableName, bis);
+            DBManager.upsertBlob(playerUUID.toString(), tableName, bis);
             bis.close();
         }
         catch (Exception e){
@@ -45,7 +43,7 @@ public class AstralResearch implements IPlayerSync {
     @Override
     public void loadFromDB(UUID playerUUID) {
         try {
-            Blob blob = DBManager.select(playerUUID.toString(), tableName);
+            Blob blob = DBManager.selectBlob(playerUUID.toString(), tableName);
             if(blob == null){
                 //it can happen, if it's not in db and load is called, like when first time creating an island and it tries to load nothing
                 return;

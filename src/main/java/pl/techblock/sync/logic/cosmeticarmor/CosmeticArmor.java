@@ -6,7 +6,6 @@ import net.minecraft.nbt.CompressedStreamTools;
 import pl.techblock.sync.TBSync;
 import pl.techblock.sync.db.DBManager;
 import pl.techblock.sync.api.interfaces.IPlayerSync;
-import pl.techblock.sync.logic.mods.duckinterfaces.ICosmeticArmorCustom;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -22,6 +21,7 @@ public class CosmeticArmor implements IPlayerSync {
 
     public CosmeticArmor(){
         instance = (ICosmeticArmorCustom) ModObjects.invMan;
+        DBManager.createTable(tableName);
     }
 
     @Override
@@ -41,7 +41,7 @@ public class CosmeticArmor implements IPlayerSync {
 
             byte[] compressedData = bos.toByteArray();
             ByteArrayInputStream bis = new ByteArrayInputStream(compressedData);
-            DBManager.upsert(playerUUID.toString(), tableName, bis);
+            DBManager.upsertBlob(playerUUID.toString(), tableName, bis);
             bis.close();
         }
         catch (Exception e){
@@ -53,7 +53,7 @@ public class CosmeticArmor implements IPlayerSync {
     @Override
     public void loadFromDB(UUID playerUUID) {
         try {
-            Blob blob = DBManager.select(playerUUID.toString(), tableName);
+            Blob blob = DBManager.selectBlob(playerUUID.toString(), tableName);
             if(blob == null){
                 //yes it handles null, it will create empty instance, this is how author did it
                 instance.readCustom(playerUUID, null);

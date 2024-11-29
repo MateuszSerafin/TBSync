@@ -1,8 +1,7 @@
-package pl.techblock.sync.logic.mods.worlds;
+package pl.techblock.sync.logic.xnet;
 
 import mcjty.xnet.multiblock.WorldBlob;
 import mcjty.xnet.multiblock.XNetBlobData;
-import mcjty.xnet.multiblock.XNetWirelessChannels;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.util.RegistryKey;
@@ -14,7 +13,6 @@ import net.minecraftforge.fml.server.ServerLifecycleHooks;
 import pl.techblock.sync.TBSync;
 import pl.techblock.sync.db.DBManager;
 import pl.techblock.sync.api.interfaces.IWorldSync;
-import pl.techblock.sync.logic.mods.duckinterfaces.IXnetBlobDataCustom;
 import javax.annotation.Nullable;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -27,7 +25,7 @@ public class XNetBlob implements IWorldSync {
     private String tableName = "XNet";
 
     public XNetBlob() {
-
+        DBManager.createTable(tableName);
     }
 
     @Nullable
@@ -67,14 +65,8 @@ public class XNetBlob implements IWorldSync {
         blob.recalculateNetwork();
     }
 
-    XNetWirelessChannels
-
-
-
-
-
     @Override
-    public void saveWorldDataToDB(String worldName) {
+    public void savePerWorldModData(String worldName) throws Exception {
         try {
             CompoundNBT toDB = new CompoundNBT();
 
@@ -92,7 +84,7 @@ public class XNetBlob implements IWorldSync {
 
             byte[] compressedData = bos.toByteArray();
             ByteArrayInputStream bis = new ByteArrayInputStream(compressedData);
-            DBManager.upsert(worldName, tableName, bis);
+            DBManager.upsertBlob(worldName, tableName, bis);
             bis.close();
         }
         catch (Exception e){
@@ -102,9 +94,9 @@ public class XNetBlob implements IWorldSync {
     }
 
     @Override
-    public void loadWorldDataFromDB(String worldName) {
+    public void loadPerWorldModData(String worldName) throws Exception {
         try {
-            Blob blob = DBManager.select(worldName, tableName);
+            Blob blob = DBManager.selectBlob(worldName, tableName);
             if(blob == null){
                 return;
             }

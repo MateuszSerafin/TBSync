@@ -1,4 +1,4 @@
-package pl.techblock.sync.logic.mods.duckinterfaces;
+package pl.techblock.sync.logic.ftb.teams;
 
 import dev.ftb.mods.ftbteams.data.TeamRank;
 import java.util.Map;

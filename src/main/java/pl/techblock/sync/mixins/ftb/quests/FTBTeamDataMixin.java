@@ -7,11 +7,12 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import pl.techblock.sync.logic.mods.duckinterfaces.IFTBTeamDataCustom;
+import pl.techblock.sync.logic.ftb.quests.IFTBTeamDataCustom;
 import java.util.UUID;
 
 @Mixin(TeamData.class)
 public abstract class FTBTeamDataMixin implements IFTBTeamDataCustom {
+
     @Unique
     private boolean wasCreatedByMe = false;
 

@@ -4,7 +4,6 @@ import futurepack.common.research.PlayerDataLoader;
 import pl.techblock.sync.TBSync;
 import pl.techblock.sync.db.DBManager;
 import pl.techblock.sync.api.interfaces.IPlayerSync;
-import pl.techblock.sync.logic.mods.duckinterfaces.IFuturePackCustom;
 import java.io.*;
 import java.sql.Blob;
 import java.util.UUID;
@@ -17,6 +16,7 @@ public class FuturePack implements IPlayerSync {
 
     public FuturePack(){
         instance = (IFuturePackCustom) PlayerDataLoader.instance;
+        DBManager.createTable(tableName);
     }
 
     @Override
@@ -30,7 +30,7 @@ public class FuturePack implements IPlayerSync {
 
             byte[] compressedData = out.toByteArray();
             ByteArrayInputStream bis = new ByteArrayInputStream(compressedData);
-            DBManager.upsert(playerUUID.toString(), tableName, bis);
+            DBManager.upsertBlob(playerUUID.toString(), tableName, bis);
             bis.close();
         }
         catch (Exception e){
@@ -43,7 +43,7 @@ public class FuturePack implements IPlayerSync {
     @Override
     public void loadFromDB(UUID playerUUID) {
         try {
-            Blob blob = DBManager.select(playerUUID.toString(), tableName);
+            Blob blob = DBManager.selectBlob(playerUUID.toString(), tableName);
             if(blob == null){
                 //technically i don't do anything it looks like internally it can handle nothing
                 return;

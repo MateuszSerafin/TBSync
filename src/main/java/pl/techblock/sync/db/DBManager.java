@@ -1,5 +1,6 @@
 package pl.techblock.sync.db;
 
+import pl.techblock.sync.TBSync;
 import pl.techblock.sync.TBSyncConfig;
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -14,18 +15,23 @@ public class DBManager {
         connection = DriverManager.getConnection(TBSyncConfig.JBDCString.get());
     }
 
-    public static void createTable(String tableName) throws SQLException{
-        String query = "CREATE TABLE " + tableName + " (key nvarchar(255) PRIMARY KEY, value blob(65535))";
+    public static void createTable(String tableName) {
+        try {
+            String query = "CREATE TABLE IF NOT EXISTS " + tableName + " (k nvarchar(255) PRIMARY KEY, v blob(65535))";
 
-        try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.execute();
+            try (PreparedStatement ps = connection.prepareStatement(query)) {
+                ps.execute();
+            }
+        } catch (Exception e){
+            TBSync.getLOGGER().error(String.format("Unable to create table %s it will definitely cause issues", tableName));
+            e.printStackTrace();
         }
     }
 
 
     @Nullable
     public static Blob selectBlob(String key, String tableName) throws SQLException {
-        String query = "SELECT value FROM " + tableName + " WHERE key = ?";
+        String query = "SELECT v FROM " + tableName + " WHERE k = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setString(1, key);
@@ -40,7 +46,7 @@ public class DBManager {
     }
 
     public static void upsertBlob(String key, String tableName, InputStream inputStream) throws SQLException, IOException {
-        String query = "INSERT INTO " + tableName + " (key, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = VALUES(value)";
+        String query = "INSERT INTO " + tableName + " (k, v) VALUES (?, ?) ON DUPLICATE KEY UPDATE v = VALUES(v)";
 
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setString(1, key);
@@ -54,7 +60,7 @@ public class DBManager {
     }
 
     public static void deleteByKey(String key, String tableName) throws SQLException {
-        String query = "DELETE FROM " + tableName + " WHERE key = ?";
+        String query = "DELETE FROM " + tableName + " WHERE k = ?";
 
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setString(1, key);

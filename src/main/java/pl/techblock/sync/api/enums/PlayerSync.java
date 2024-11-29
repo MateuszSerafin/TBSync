@@ -5,9 +5,6 @@ public enum PlayerSync {
     FluxNetworks,
     CosmeticArmor,
     FuturePack,
-    FTBKnownPlayer,
-    FTBParty,
-    FTBQuests,
     EnderStorage,
     EnderChests,
     EnderTanks;

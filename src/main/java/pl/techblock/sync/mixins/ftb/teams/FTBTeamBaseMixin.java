@@ -1,11 +1,11 @@
-package pl.techblock.sync.mixins.ftb;
+package pl.techblock.sync.mixins.ftb.teams;
 
 import dev.ftb.mods.ftbteams.data.TeamBase;
 import dev.ftb.mods.ftbteams.data.TeamRank;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import pl.techblock.sync.logic.mods.duckinterfaces.IFTBTeamBaseCustom;
+import pl.techblock.sync.logic.ftb.teams.IFTBTeamBaseCustom;
 import java.util.Map;
 import java.util.UUID;
 
@@ -26,6 +26,4 @@ public abstract class FTBTeamBaseMixin implements IFTBTeamBaseCustom {
     public Map<UUID, TeamRank> getRanks(){
         return ranks;
     }
-
-
 }

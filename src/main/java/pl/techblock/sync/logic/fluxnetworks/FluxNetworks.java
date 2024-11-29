@@ -6,7 +6,6 @@ import net.minecraft.nbt.CompressedStreamTools;
 import pl.techblock.sync.TBSync;
 import pl.techblock.sync.db.DBManager;
 import pl.techblock.sync.api.interfaces.IPlayerSync;
-import pl.techblock.sync.logic.mods.duckinterfaces.IFluxNetworksCustom;
 import sonar.fluxnetworks.api.network.IFluxNetwork;
 import sonar.fluxnetworks.common.storage.FluxNetworkData;
 import java.io.BufferedOutputStream;
@@ -26,11 +25,49 @@ public class FluxNetworks implements IPlayerSync {
     //important thing is there are two tables for this mod
     private String networkIDsTable = "FluxNetworksIDS";
 
+    private void createSecondTable(){
+        try {
+            String query = "CREATE TABLE IF NOT EXISTS FluxNetworksIDS (userID nvarchar(255) PRIMARY KEY, networkID INT AUTO_INCREMENT)";
 
-    public FluxNetworks() {
-
+            try (PreparedStatement ps = DBManager.getConnectionForNonStandardQuery().prepareStatement(query)) {
+                ps.execute();
+            }
+        } catch (Exception e){
+            TBSync.getLOGGER().error(String.format("Unable to create table %s it will definitely cause issues", tableName));
+            e.printStackTrace();
+        }
     }
 
+    private void createProcedure(){
+        String query = """
+                CREATE PROCEDURE IF NOT EXISTS getNetworksOrAddAndGet (IN paramUserID nvarchar(255))
+                 BEGIN
+                  DECLARE currentNetworks INT;
+                  SELECT COUNT(userID) INTO currentNetworks FROM FluxNetworksIDS WHERE userID=paramUserID;
+                  IF currentNetworks < 3 THEN
+                    INSERT INTO FluxNetworksIDS(userID) VALUES (paramUserID);
+                    INSERT INTO FluxNetworksIDS(userID) VALUES (paramUserID);
+                    INSERT INTO FluxNetworksIDS(userID) VALUES (paramUserID);
+                  END IF;
+                  SELECT networkID FROM FluxNetworksIDS WHERE userID=paramUserID;
+                 END;
+                //""";
+
+        try {
+            try (PreparedStatement ps = DBManager.getConnectionForNonStandardQuery().prepareStatement(query)) {
+                ps.execute();
+            }
+        } catch (Exception e){
+            TBSync.getLOGGER().error("Unable to create procedure for flux networks (it won't work without it)");
+            e.printStackTrace();
+        }
+    }
+
+    public FluxNetworks() {
+        DBManager.createTable(tableName);
+        createSecondTable();
+        createProcedure();
+    }
 
     @Override
     public void saveToDB(UUID playerUUID) {
@@ -44,7 +81,7 @@ public class FluxNetworks implements IPlayerSync {
 
             byte[] compressedData = bos.toByteArray();
             ByteArrayInputStream bis = new ByteArrayInputStream(compressedData);
-            DBManager.upsert(playerUUID.toString(), tableName, bis);
+            DBManager.upsertBlob(playerUUID.toString(), tableName, bis);
             bis.close();
         }
         catch (Exception e){
@@ -52,7 +89,6 @@ public class FluxNetworks implements IPlayerSync {
             e.printStackTrace();
         }
     }
-
 
     private List<Integer> getAvailableNetworksForPlayer(UUID pUUID)  throws SQLException {
         String query = "CALL getNetworksOrAddAndGet(?)";
@@ -84,7 +120,7 @@ public class FluxNetworks implements IPlayerSync {
             ((IFluxNetworksCustom) data).addStaticNetworkIDS(playerUUID, aviableNetworksFromSQL);
 
 
-            Blob blob = DBManager.select(playerUUID.toString(), tableName);
+            Blob blob = DBManager.selectBlob(playerUUID.toString(), tableName);
             if(blob == null){
                 //it can happen, if it's not in db and load is called, like when first time creating an island and it tries to load nothing
                 return;

@@ -10,7 +10,7 @@ import net.minecraft.world.storage.WorldSavedData;
 import net.minecraftforge.common.util.Constants;
 import org.spongepowered.asm.mixin.*;
 import pl.techblock.sync.TBSync;
-import pl.techblock.sync.logic.mods.duckinterfaces.IFluxNetworksCustom;
+import pl.techblock.sync.logic.fluxnetworks.IFluxNetworksCustom;
 import sonar.fluxnetworks.FluxNetworks;
 import sonar.fluxnetworks.api.misc.FluxConstants;
 import sonar.fluxnetworks.api.network.IFluxNetwork;
@@ -75,8 +75,6 @@ public abstract class FluxNetworksMixin extends WorldSavedData implements IFluxN
         NetworkHandler.sendToAll(NetworkHandler.S2C_UpdateNetwork(network, FluxConstants.TYPE_NET_BASIC));
         return network;
     }
-
-
 
     @Overwrite
     public void load(CompoundNBT compoundNBT) {

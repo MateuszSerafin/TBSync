@@ -7,7 +7,7 @@ import dev.ftb.mods.ftbquests.quest.TeamData;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
-import pl.techblock.sync.logic.mods.duckinterfaces.IFTBQuestsFileCustom;
+import pl.techblock.sync.logic.ftb.quests.IFTBQuestsFileCustom;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
@@ -20,6 +20,7 @@ public abstract class FTBServerQuestMixin extends QuestFile implements IFTBQuest
 
     @Shadow
     private boolean isLoading;
+
     @Shadow
     private Path folder;
 
@@ -34,6 +35,7 @@ public abstract class FTBServerQuestMixin extends QuestFile implements IFTBQuest
         }
         //past this point it was loading each player data not what i want
     }
+
     @Overwrite(remap = false)
     public void saveNow() {
 
