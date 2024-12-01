@@ -49,7 +49,6 @@ public class XNetBlob implements IWorldSync {
         return nbt;
     }
 
-
     private void loadXnetBlob(String worldName, CompoundNBT nbt){
         RegistryKey<World> worldRegistryKey = RegistryKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(worldName));
 
