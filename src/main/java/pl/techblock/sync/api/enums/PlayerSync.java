@@ -7,5 +7,6 @@ public enum PlayerSync {
     FuturePack,
     EnderStorage,
     EnderChests,
-    EnderTanks;
+    EnderTanks,
+    ForgeCaps;
 }

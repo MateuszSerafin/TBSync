@@ -10,6 +10,7 @@ import pl.techblock.sync.logic.enderchests.EnderChests;
 import pl.techblock.sync.logic.enderstorage.EnderStorage;
 import pl.techblock.sync.logic.endertanks.EnderTanks;
 import pl.techblock.sync.logic.fluxnetworks.FluxNetworks;
+import pl.techblock.sync.logic.forgecapabilities.ForgeCaps;
 import pl.techblock.sync.logic.futurepack.FuturePack;
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -26,6 +27,7 @@ public class PlayerManager {
         IPlayerSyncMap.put(PlayerSync.EnderStorage, new EnderStorage());
         IPlayerSyncMap.put(PlayerSync.EnderChests, new EnderChests());
         IPlayerSyncMap.put(PlayerSync.EnderTanks, new EnderTanks());
+        IPlayerSyncMap.put(PlayerSync.ForgeCaps, new ForgeCaps());
     }
 
     public static void saveAll(UUID playerUUID){
