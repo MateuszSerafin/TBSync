@@ -6,10 +6,17 @@ import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import pl.techblock.sync.api.WorldManager;
+import pl.techblock.sync.api.enums.WorldSync;
+import java.util.List;
+import java.util.ArrayList;
 
 public class DebugWorlds {
 
+    private List<WorldSync> synchronizeWhat = new ArrayList<>();
+
     public DebugWorlds(CommandDispatcher<CommandSource> dispatcher){
+        synchronizeWhat.add(WorldSync.XNetBlobData);
+
         dispatcher.register(
                 Commands.literal("debugSaveWorld")
                         .requires(source -> source.hasPermission(2))
@@ -34,19 +41,19 @@ public class DebugWorlds {
 
     private int save(CommandContext<CommandSource> commandContext){
         String raw  = commandContext.getArgument("worldName", String.class);
-        WorldManager.saveAll(raw);
+        WorldManager.saveSpecificToDB(synchronizeWhat, raw);
         return 0;
     }
 
     private int load(CommandContext<CommandSource> commandContext){
         String raw  = commandContext.getArgument("worldName", String.class);
-        WorldManager.loadAll(raw);
+        WorldManager.loadSpecificFromDB(synchronizeWhat, raw);
         return 0;
     }
 
     private int cleanup(CommandContext<CommandSource> commandContext){
         String raw  = commandContext.getArgument("worldName", String.class);
-        WorldManager.cleanUpAll(raw);
+        WorldManager.cleanUpSpecific(synchronizeWhat, raw);
         return 0;
     }
 }

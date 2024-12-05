@@ -12,10 +12,8 @@ import net.minecraft.nbt.ListNBT;
 import pl.techblock.sync.TBSync;
 import pl.techblock.sync.db.DBManager;
 import pl.techblock.sync.api.interfaces.IPlayerSync;
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
+import javax.annotation.Nullable;
+import java.io.*;
 import java.sql.Blob;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,47 +32,88 @@ public class EnderStorage implements IPlayerSync {
         DBManager.createTable(tableName);
     }
 
+    @Nullable
+    @Override
+    public ByteArrayOutputStream getSaveData(UUID playerUUID) throws Exception {
+        //string is something like white,white,white,type=fluid or smh,owner=uuid
+        ListNBT nbtListNBT = new ListNBT();
+
+        for (Map.Entry<String, AbstractEnderStorage> stringAbstractEnderStorageEntry : getInstance().getStorageMap().entrySet()) {
+            AbstractEnderStorage val = stringAbstractEnderStorageEntry.getValue();
+            Frequency freq = val.freq;
+            if (!freq.getOwner().equals(playerUUID)) continue;
+
+            CompoundNBT saveToThat = new CompoundNBT();
+            freq.writeToNBT(saveToThat);
+            saveToThat.put("abstractData", val.saveToTag());
+            //it doesn't actually save type of it it needs to be saved on it's own and then instance needs to be created like that
+            //item or liquid
+            saveToThat.putString("abstractType", val.type());
+            nbtListNBT.add(saveToThat);
+        }
+        //pointless to call db with just empty tag
+        if (nbtListNBT.isEmpty()) return null;
+
+        CompoundNBT tagOfList = new CompoundNBT();
+        tagOfList.put("list", nbtListNBT);
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        try (OutputStream saveTo = new BufferedOutputStream(bos)) {
+            CompressedStreamTools.writeCompressed(tagOfList, saveTo);
+        }
+        return bos;
+    }
+
     @Override
     public void saveToDB(UUID playerUUID) {
         try {
-            //string is something like white,white,white,type=fluid or smh,owner=uuid
-            ListNBT nbtListNBT = new ListNBT();
-
-            for (Map.Entry<String, AbstractEnderStorage> stringAbstractEnderStorageEntry : getInstance().getStorageMap().entrySet()) {
-                AbstractEnderStorage val = stringAbstractEnderStorageEntry.getValue();
-                Frequency freq = val.freq;
-                if (!freq.getOwner().equals(playerUUID)) continue;
-
-                CompoundNBT saveToThat = new CompoundNBT();
-                freq.writeToNBT(saveToThat);
-                saveToThat.put("abstractData", val.saveToTag());
-                //it doesn't actually save type of it it needs to be saved on it's own and then instance needs to be created like that
-                //item or liquid
-                saveToThat.putString("abstractType", val.type());
-                nbtListNBT.add(saveToThat);
-            }
-            //pointless to call db with just empty tag
-            if (nbtListNBT.isEmpty()) return;
-
-            CompoundNBT tagOfList = new CompoundNBT();
-            tagOfList.put("list", nbtListNBT);
-
-
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            try (OutputStream saveTo = new BufferedOutputStream(bos)) {
-                CompressedStreamTools.writeCompressed(tagOfList, saveTo);
-            }
-
-
+            ByteArrayOutputStream bos = getSaveData(playerUUID);
+            if(bos == null) return;
             byte[] compressedData = bos.toByteArray();
             ByteArrayInputStream bis = new ByteArrayInputStream(compressedData);
             DBManager.upsertBlob(playerUUID.toString(), tableName, bis);
-
             bis.close();
         } catch (Exception e){
             TBSync.getLOGGER().error(String.format("Something died with saving enderstorage for %s", playerUUID));
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void loadSaveData(UUID playerUUID, InputStream in) throws Exception {
+        if(in == null) return;
+        CompoundNBT tag = CompressedStreamTools.readCompressed(in);
+        //10 is id for compound nbt i thought it was for size or something
+        for (INBT list : tag.getList("list", 10)) {
+            CompoundNBT thisIsActualCompound = (CompoundNBT) list;
+            Frequency fromNbtFrequency = new Frequency(thisIsActualCompound);
+            String type = thisIsActualCompound.getString("abstractType");
+
+            AbstractEnderStorage abstractEnderStorage;
+            String key;
+
+            switch (type){
+                case "liquid":
+                    abstractEnderStorage = new EnderLiquidStorage(EnderStorageManager.instance(false), fromNbtFrequency);
+                    abstractEnderStorage.loadFromTag(thisIsActualCompound.getCompound("abstractData"));
+                    key = fromNbtFrequency + ",type=" + abstractEnderStorage.type();
+                    getInstance().getStorageMap().put(key, abstractEnderStorage);
+                    getInstance().getStorageList().get(EnderLiquidStorage.TYPE).add(abstractEnderStorage);
+                    break;
+                case "item":
+                    abstractEnderStorage = new EnderItemStorage(EnderStorageManager.instance(false), fromNbtFrequency);
+                    abstractEnderStorage.loadFromTag(thisIsActualCompound.getCompound("abstractData"));
+                    key = fromNbtFrequency + ",type=" + abstractEnderStorage.type();
+                    getInstance().getStorageMap().put(key, abstractEnderStorage);
+                    getInstance().getStorageList().get(EnderItemStorage.TYPE).add(abstractEnderStorage);
+                    break;
+                default:
+                    TBSync.getLOGGER().error(String.format("Somehow found different type of storage for %s", playerUUID));
+                    //let's not crash whole server just beacuse of it
+                    continue;
+            }
+        }
+        in.close();
     }
 
     @Override
@@ -84,37 +123,7 @@ public class EnderStorage implements IPlayerSync {
             if(blob == null){
                 return;
             }
-            CompoundNBT tag = CompressedStreamTools.readCompressed(blob.getBinaryStream());
-            //10 is id for compound nbt i thought it was for size or something
-            for (INBT list : tag.getList("list", 10)) {
-                CompoundNBT thisIsActualCompound = (CompoundNBT) list;
-                Frequency fromNbtFrequency = new Frequency(thisIsActualCompound);
-                String type = thisIsActualCompound.getString("abstractType");
-
-                AbstractEnderStorage abstractEnderStorage;
-                String key;
-
-                switch (type){
-                    case "liquid":
-                        abstractEnderStorage = new EnderLiquidStorage(EnderStorageManager.instance(false), fromNbtFrequency);
-                        abstractEnderStorage.loadFromTag(thisIsActualCompound.getCompound("abstractData"));
-                        key = fromNbtFrequency + ",type=" + abstractEnderStorage.type();
-                        getInstance().getStorageMap().put(key, abstractEnderStorage);
-                        getInstance().getStorageList().get(EnderLiquidStorage.TYPE).add(abstractEnderStorage);
-                        break;
-                    case "item":
-                        abstractEnderStorage = new EnderItemStorage(EnderStorageManager.instance(false), fromNbtFrequency);
-                        abstractEnderStorage.loadFromTag(thisIsActualCompound.getCompound("abstractData"));
-                        key = fromNbtFrequency + ",type=" + abstractEnderStorage.type();
-                        getInstance().getStorageMap().put(key, abstractEnderStorage);
-                        getInstance().getStorageList().get(EnderItemStorage.TYPE).add(abstractEnderStorage);
-                        break;
-                    default:
-                        TBSync.getLOGGER().error(String.format("Somehow found different type of storage for %s", playerUUID));
-                        //let's not crash whole server just beacuse of it
-                        continue;
-                }
-            }
+            loadSaveData(playerUUID, blob.getBinaryStream());
             blob.free();
         } catch (Exception e){
             TBSync.getLOGGER().error(String.format("Problem with Enderstorage while loading data for %s", playerUUID));

@@ -30,7 +30,7 @@ import java.util.UUID;
 //it looks like i fcked up while testing and wireless bit did not require synchronization i am leaving that for future use just in case
 //(if it saves data to the world directory i assumed it's important but it looks like channels were working normally by just loading world no idea)
 @Deprecated
-public class XNetWireless implements IPlayerSync {
+public abstract class XNetWireless{
 
     private String tableName = "XNetWireless";
 
@@ -80,7 +80,7 @@ public class XNetWireless implements IPlayerSync {
         return toReturn;
     }
 
-    @Override
+
     public void saveToDB(UUID playerUUID) throws Exception {
         try {
             CompoundNBT tag = getCompound(playerUUID);
@@ -120,7 +120,7 @@ public class XNetWireless implements IPlayerSync {
         }
     }
 
-    @Override
+
     public void loadFromDB(UUID playerUUID) throws Exception {
         try {
             Blob blob = DBManager.selectBlob(playerUUID.toString(), tableName);
@@ -137,7 +137,7 @@ public class XNetWireless implements IPlayerSync {
         }
     }
 
-    @Override
+
     public void cleanup(UUID playerUUID) throws Exception {
         RegistryKey<World> worldRegistryKey = RegistryKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation("minecraft:overworld"));
 

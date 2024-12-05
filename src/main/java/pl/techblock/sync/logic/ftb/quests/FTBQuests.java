@@ -9,7 +9,7 @@ import pl.techblock.sync.TBSync;
 import pl.techblock.sync.api.PartyPlayer;
 import pl.techblock.sync.api.interfaces.IPartySync;
 import pl.techblock.sync.db.DBManager;
-
+import javax.annotation.Nullable;
 import java.io.*;
 import java.sql.Blob;
 import java.util.List;
@@ -28,19 +28,26 @@ public class FTBQuests implements IPartySync {
         return (IFTBQuestsFileCustom) ServerQuestFile.INSTANCE;
     }
 
+    @Nullable
     @Override
-    public void saveParty(UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members) throws Exception {
+    public ByteArrayOutputStream getSavePartyData(UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members) throws Exception {
+        TeamData data = getServerQuests().getTeamDataMap().get(partyUUID);
+        if (data == null) return null;
+
+        CompoundNBT tag = data.serializeNBT();
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        try (OutputStream saveTo = new BufferedOutputStream(bos)) {
+            CompressedStreamTools.writeCompressed(tag, saveTo);
+        }
+        return bos;
+    }
+
+    @Override
+    public void savePartyToDB(UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members) throws Exception {
         try {
-            TeamData data = getServerQuests().getTeamDataMap().get(partyUUID);
-            if (data == null) return;
-
-            CompoundNBT tag = data.serializeNBT();
-
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            try (OutputStream saveTo = new BufferedOutputStream(bos)) {
-                CompressedStreamTools.writeCompressed(tag, saveTo);
-            }
-
+            ByteArrayOutputStream bos = getSavePartyData(partyUUID, owner, members);
+            if(bos == null) return;
             byte[] compressedData = bos.toByteArray();
             ByteArrayInputStream bis = new ByteArrayInputStream(compressedData);
             DBManager.upsertBlob(partyUUID.toString(), tableName, bis);
@@ -52,30 +59,36 @@ public class FTBQuests implements IPartySync {
     }
 
     @Override
-    public void loadParty(UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members) throws Exception {
-        //overwrite what is existing
-        //stolen from ServerQuestFile
-        //there is a mixin that prevents collecting rewards if Team was created by not me (such as on playerloggedin)
-        try {
-            Blob compressedNBT = DBManager.selectBlob(partyUUID.toString(), tableName);
-            //can happen
-            if(compressedNBT == null) {
-                TeamData data = new TeamData(partyUUID);
-                data.file = ServerQuestFile.INSTANCE;
-                ((IFTBTeamDataCustom) data).setCreatedByMe();
-                getServerQuests().getTeamDataMap().put(partyUUID, data);
-                return;
-            }
-
-            InputStream stream = compressedNBT.getBinaryStream();
-            CompoundNBT nbt = CompressedStreamTools.readCompressed(stream);
-            stream.close();
-
+    public void loadPartyData(UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members, InputStream in) throws Exception {
+        if(in == null) {
             TeamData data = new TeamData(partyUUID);
             data.file = ServerQuestFile.INSTANCE;
-            data.deserializeNBT(SNBTCompoundTag.of(nbt));
             ((IFTBTeamDataCustom) data).setCreatedByMe();
             getServerQuests().getTeamDataMap().put(partyUUID, data);
+            return;
+        }
+
+        CompoundNBT nbt = CompressedStreamTools.readCompressed(in);
+        in.close();
+        TeamData data = new TeamData(partyUUID);
+        data.file = ServerQuestFile.INSTANCE;
+        data.deserializeNBT(SNBTCompoundTag.of(nbt));
+        ((IFTBTeamDataCustom) data).setCreatedByMe();
+        getServerQuests().getTeamDataMap().put(partyUUID, data);
+    }
+
+    @Override
+    public void loadPartyFromDB(UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members) throws Exception {
+        try {
+            Blob compressedNBT = DBManager.selectBlob(partyUUID.toString(), tableName);
+            if(compressedNBT == null) {
+                loadPartyData(partyUUID, owner, members, null);
+                return;
+            }
+            else {
+                loadPartyData(partyUUID, owner, members, compressedNBT.getBinaryStream());
+            }
+            compressedNBT.free();
         } catch (Exception e){
             TBSync.getLOGGER().error(String.format("Something died while loading data for %s FTBQuests", partyUUID.toString()));
             e.printStackTrace();

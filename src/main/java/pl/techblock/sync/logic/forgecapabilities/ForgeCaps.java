@@ -27,22 +27,45 @@ public class ForgeCaps implements IPlayerSync {
         exclusions.add("curios:inventory");
     }
 
-    private void saveCompound(UUID playerUUID, CompoundNBT tag){
-        try {
-            if(tag.contains("ForgeCaps")){
-                TBSync.getLOGGER().error("Error while syncing capabilities, provided whole player.dat not only caps refusing to continue");
-                return;
-            }
+    @Nullable
+    @Override
+    public ByteArrayOutputStream getSaveData(UUID playerUUID) throws Exception {
+        ServerPlayerEntity onlinePLayer = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(playerUUID);
 
+        if(onlinePLayer != null){
+            CompoundNBT saveHere = new CompoundNBT();
+            onlinePLayer.getEntity().saveWithoutId(saveHere);
+            CompoundNBT caps = saveHere.getCompound("ForgeCaps");
             for (String exclusion : exclusions) {
-                tag.remove(exclusion);
+                caps.remove(exclusion);
             }
 
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            try (OutputStream saveTo = new BufferedOutputStream(bos)) {
-                CompressedStreamTools.writeCompressed(tag, saveTo);
-            }
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            CompressedStreamTools.writeCompressed(caps, out);
+            return out;
+        }
 
+        File file = new File("./world/playerdata/" + playerUUID.toString() + ".dat");
+        if(!file.exists()) return null;
+        CompoundNBT nbt = CompressedStreamTools.readCompressed(file);
+
+        CompoundNBT caps = nbt.getCompound("ForgeCaps");
+        for (String exclusion : exclusions) {
+            caps.remove(exclusion);
+        }
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        CompressedStreamTools.writeCompressed(caps, out);
+        return out;
+    }
+
+    //on arclight-forge-1.16.5-1.0.25.jar after player logs out the player.dat tag is saved instantly
+    //its pretty sensible to use it
+    @Override
+    public void saveToDB(UUID playerUUID) throws Exception {
+        try {
+            ByteArrayOutputStream bos = getSaveData(playerUUID);
+            if(bos == null) return;
             byte[] compressedData = bos.toByteArray();
             ByteArrayInputStream bis = new ByteArrayInputStream(compressedData);
             DBManager.upsertBlob(playerUUID.toString(), tableName, bis);
@@ -54,50 +77,14 @@ public class ForgeCaps implements IPlayerSync {
         }
     }
 
-    @Nullable
-    private CompoundNBT loadCompound(UUID playerUUID){
-        try {
-            Blob blob = DBManager.selectBlob(playerUUID.toString(), tableName);
-            if(blob == null){
-                return null;
-            }
-            CompoundNBT tag = CompressedStreamTools.readCompressed(blob.getBinaryStream());
-            blob.free();
-            return tag;
-        } catch (Exception e){
-            TBSync.getLOGGER().error("Problem with Forge caps while loading data");
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    //on arclight-forge-1.16.5-1.0.25.jar after player logs out the player.dat tag is saved instantly
-    //its pretty sensible to use it
-    @Override
-    public void saveToDB(UUID playerUUID) throws Exception {
-        ServerPlayerEntity onlinePLayer = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(playerUUID);
-
-        if(onlinePLayer != null){
-            CompoundNBT saveHere = new CompoundNBT();
-            onlinePLayer.getEntity().saveWithoutId(saveHere);
-            saveCompound(playerUUID, saveHere.getCompound("ForgeCaps"));
-            return;
-        }
-
-        File file = new File("./world/playerdata/" + playerUUID.toString() + ".dat");
-        if(!file.exists()) return;
-        CompoundNBT nbt = CompressedStreamTools.readCompressed(file);
-        saveCompound(playerUUID, nbt.getCompound("ForgeCaps"));
-    }
-
     //yea no way to load it this way, only from player.dat
     //if player logs in before this is called there is a problem (i tried other ways)
     //i also don't really want to make mixin for every capability
     //this is crappy but will work assuming my code is correctly called by island plugin
     @Override
-    public void loadFromDB(UUID playerUUID) throws Exception {
-        CompoundNBT forgeCapsFromDB = loadCompound(playerUUID);
-        if(forgeCapsFromDB == null) return;
+    public void loadSaveData(UUID playerUUID, InputStream in) throws Exception {
+        if(in == null) return;
+        CompoundNBT forgeCapsFromDB = CompressedStreamTools.readCompressed(in);
 
         File file = new File("./world/playerdata/" + playerUUID.toString() + ".dat");
 
@@ -110,6 +97,22 @@ public class ForgeCaps implements IPlayerSync {
         CompoundNBT local = CompressedStreamTools.readCompressed(file);
         local.put("ForgeCaps", forgeCapsFromDB);
         CompressedStreamTools.writeCompressed(local, file);
+        in.close();
+    }
+
+    @Override
+    public void loadFromDB(UUID playerUUID) throws Exception {
+        try {
+            Blob blob = DBManager.selectBlob(playerUUID.toString(), tableName);
+            if(blob == null){
+                return;
+            }
+            loadSaveData(playerUUID, blob.getBinaryStream());
+            blob.free();
+        } catch (Exception e){
+            TBSync.getLOGGER().error("Problem with Forge caps while loading data");
+            e.printStackTrace();
+        }
     }
 
     @Override

@@ -6,10 +6,8 @@ import pl.techblock.sync.TBSync;
 import pl.techblock.sync.db.DBManager;
 import pl.techblock.sync.api.interfaces.IPlayerSync;
 import pl.techblock.sync.mixins.enderchests.EnderChestsAccess;
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
+import javax.annotation.Nullable;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.sql.Blob;
@@ -24,11 +22,12 @@ public class EnderChests implements IPlayerSync {
         DBManager.createTable(tableName);
     }
 
+    @Nullable
     @Override
-    public void saveToDB(UUID playerUUID) {
+    public ByteArrayOutputStream getSaveData(UUID playerUUID) throws Exception {
         //crime crime crime
         Map dataForPlayer = EnderChestsAccess.getDatabase().row(playerUUID.toString());
-        if(dataForPlayer.isEmpty()) return;
+        if(dataForPlayer.isEmpty()) return null;
 
         CompoundNBT fileNBT = new CompoundNBT();
 
@@ -55,8 +54,17 @@ public class EnderChests implements IPlayerSync {
             try (OutputStream saveTo = new BufferedOutputStream(bos)) {
                 CompressedStreamTools.writeCompressed(fileNBT, saveTo);
             }
+            return bos;
+        } catch (Exception e){
+            return null;
+        }
+    }
 
-
+    @Override
+    public void saveToDB(UUID playerUUID) {
+        try {
+            ByteArrayOutputStream bos = getSaveData(playerUUID);
+            if(bos == null) return;
             byte[] compressedData = bos.toByteArray();
             ByteArrayInputStream bis = new ByteArrayInputStream(compressedData);
             DBManager.upsertBlob(playerUUID.toString(), tableName, bis);
@@ -69,22 +77,9 @@ public class EnderChests implements IPlayerSync {
     }
 
     @Override
-    public void loadFromDB(UUID playerUUID) {
-        CompoundNBT tag = null;
-        try {
-            Blob blob = DBManager.selectBlob(playerUUID.toString(), tableName);
-            if(blob == null){
-                return;
-            }
-            tag = CompressedStreamTools.readCompressed(blob.getBinaryStream());
-            blob.free();
-        } catch (Exception e){
-            TBSync.getLOGGER().error("Problem with EnderChests while loading data from database");
-            e.printStackTrace();
-        }
-
-        if(tag == null) return;
-
+    public void loadSaveData(UUID playerUUID, InputStream in) throws Exception {
+        if(in == null) return;
+        CompoundNBT tag = CompressedStreamTools.readCompressed(in);
         for (String code : tag.getAllKeys()) {
             try {
                 Class<?> chestDataClass = Class.forName("shetiphian.enderchests.common.misc.ChestData");
@@ -103,6 +98,23 @@ public class EnderChests implements IPlayerSync {
                 continue;
             }
         }
+        in.close();
+    }
+
+    @Override
+    public void loadFromDB(UUID playerUUID) {
+        try {
+            Blob blob = DBManager.selectBlob(playerUUID.toString(), tableName);
+            if(blob == null){
+                return;
+            }
+            loadSaveData(playerUUID, blob.getBinaryStream());
+            blob.free();
+        } catch (Exception e){
+            TBSync.getLOGGER().error("Problem with EnderChests while loading data from database");
+            e.printStackTrace();
+        }
+
     }
 
     @Override

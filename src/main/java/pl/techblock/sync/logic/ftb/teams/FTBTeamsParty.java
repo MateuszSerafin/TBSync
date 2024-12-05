@@ -4,7 +4,9 @@ import dev.ftb.mods.ftbteams.data.*;
 import pl.techblock.sync.TBSync;
 import pl.techblock.sync.api.PartyPlayer;
 import pl.techblock.sync.api.interfaces.IPartySync;
-
+import javax.annotation.Nullable;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
 
@@ -12,11 +14,6 @@ public class FTBTeamsParty implements IPartySync {
 
     private IFTBTeamsCustom giveInstance(){
         return (IFTBTeamsCustom) TeamManager.INSTANCE;
-    }
-
-    @Override
-    public void saveParty(UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members) throws Exception {
-        return;
     }
 
     private PlayerTeam createPlayerteam(PartyPlayer player){
@@ -31,8 +28,20 @@ public class FTBTeamsParty implements IPartySync {
         return team;
     }
 
+    //this one is a funny one it actually kinda does nothing just loads data
+    @Nullable
     @Override
-    public void loadParty(UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members) throws Exception {
+    public ByteArrayOutputStream getSavePartyData(UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members) throws Exception {
+        return null;
+    }
+
+    @Override
+    public void savePartyToDB(UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members) throws Exception {
+
+    }
+
+    @Override
+    public void loadPartyData(UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members, @Nullable InputStream in) throws Exception {
         PartyTeam team = new PartyTeam(TeamManager.INSTANCE);
         ((IFTBTeamBaseCustom) team).setUUID(partyUUID);
         ((IFTBPartyTeamCustom) team).setOwner(owner.playerUUID());
@@ -57,6 +66,11 @@ public class FTBTeamsParty implements IPartySync {
             ((IFTBTeamBaseCustom) pteam).getRanks().remove(member.playerUUID());
             ((IFTBTeamBaseCustom) team).getRanks().put(member.playerUUID(), TeamRank.MEMBER);
         }
+    }
+
+    @Override
+    public void loadPartyFromDB(UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members) throws Exception {
+        loadPartyData(partyUUID, owner, members, null);
     }
 
     private void cleanupPlayer(PartyPlayer player){

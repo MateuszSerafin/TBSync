@@ -6,6 +6,7 @@ import pl.techblock.sync.api.enums.WorldSync;
 import pl.techblock.sync.api.interfaces.IWorldSync;
 import pl.techblock.sync.logic.xnet.XNetBlob;
 import java.util.Map;
+import java.util.List;
 
 //there is assumption that world names do not change, so if you change server
 //make sure that world name is exactly the same (it will not work otherwise)
@@ -18,13 +19,11 @@ public class WorldManager {
         IWorldSyncMap.put(WorldSync.XNetBlobData, new XNetBlob());
     }
 
-    public static void saveAll(String worldName){
-        for (Map.Entry<WorldSync, IWorldSync> worldSyncIWorldSyncEntry : IWorldSyncMap.entrySet()) {
-            WorldSync worldSync =  worldSyncIWorldSyncEntry.getKey();
-            IWorldSync IWorldSync = worldSyncIWorldSyncEntry.getValue();
-
+    public static void saveSpecificToDB(List<WorldSync> whichOnes, String worldName){
+        for (WorldSync worldSync : whichOnes) {
+            IWorldSync IWorldSync = IWorldSyncMap.get(worldSync);
             try {
-                IWorldSync.savePerWorldModData(worldName);
+                IWorldSync.savePerWorldModDataToDB(worldName);
             } catch (Exception e){
                 TBSync.getLOGGER().error(String.format("Tried to save world data for %s but failed", worldSync.toString()));
                 e.printStackTrace();
@@ -32,13 +31,11 @@ public class WorldManager {
         }
     }
 
-    public static void loadAll(String worldName){
-        for (Map.Entry<WorldSync, IWorldSync> worldSyncIWorldSyncEntry : IWorldSyncMap.entrySet()) {
-            WorldSync worldSync =  worldSyncIWorldSyncEntry.getKey();
-            IWorldSync IWorldSync = worldSyncIWorldSyncEntry.getValue();
-
+    public static void loadSpecificFromDB(List<WorldSync> whichOnes, String worldName){
+        for (WorldSync worldSync : whichOnes) {
+            IWorldSync IWorldSync = IWorldSyncMap.get(worldSync);
             try {
-                IWorldSync.loadPerWorldModData(worldName);
+                IWorldSync.loadPerWorldModDataFromDB(worldName);
             } catch (Exception e){
                 TBSync.getLOGGER().error(String.format("Tried to load world data for %s but failed", worldSync.toString()));
                 e.printStackTrace();
@@ -46,11 +43,9 @@ public class WorldManager {
         }
     }
 
-    public static void cleanUpAll(String worldName){
-        for (Map.Entry<WorldSync, IWorldSync> worldSyncIWorldSyncEntry : IWorldSyncMap.entrySet()) {
-            WorldSync worldSync =  worldSyncIWorldSyncEntry.getKey();
-            IWorldSync IWorldSync = worldSyncIWorldSyncEntry.getValue();
-
+    public static void cleanUpSpecific(List<WorldSync> whichOnes, String worldName){
+        for (WorldSync worldSync : whichOnes) {
+            IWorldSync IWorldSync = IWorldSyncMap.get(worldSync);
             try {
                 IWorldSync.cleanup(worldName);
             } catch (Exception e){

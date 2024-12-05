@@ -6,10 +6,8 @@ import net.minecraft.nbt.CompressedStreamTools;
 import pl.techblock.sync.TBSync;
 import pl.techblock.sync.db.DBManager;
 import pl.techblock.sync.api.interfaces.IPlayerSync;
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
+import javax.annotation.Nullable;
+import java.io.*;
 import java.sql.Blob;
 import java.util.UUID;
 
@@ -24,21 +22,28 @@ public class CosmeticArmor implements IPlayerSync {
         DBManager.createTable(tableName);
     }
 
+    @Nullable
+    @Override
+    public ByteArrayOutputStream getSaveData(UUID playerUUID) throws Exception {
+        CompoundNBT tag = instance.writeCustom(playerUUID);
+
+        if(tag == null){
+            TBSync.getLOGGER().error("This is edge case theoretically it should be there, something with not initializing cache for cosmetic armor");
+            return null;
+        }
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        try (OutputStream saveTo = new BufferedOutputStream(bos)) {
+            CompressedStreamTools.writeCompressed(tag, saveTo);
+        }
+        return bos;
+    }
+
     @Override
     public void saveToDB(UUID playerUUID) {
         try {
-            CompoundNBT tag = instance.writeCustom(playerUUID);
-
-            if(tag == null){
-                TBSync.getLOGGER().error("This is edge case theoretically it should be there, something with not initializing cache for cosmetic armor");
-                return;
-            }
-
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            try (OutputStream saveTo = new BufferedOutputStream(bos)) {
-                CompressedStreamTools.writeCompressed(tag, saveTo);
-            }
-
+            ByteArrayOutputStream bos = getSaveData(playerUUID);
+            if(bos == null) return;
             byte[] compressedData = bos.toByteArray();
             ByteArrayInputStream bis = new ByteArrayInputStream(compressedData);
             DBManager.upsertBlob(playerUUID.toString(), tableName, bis);
@@ -51,18 +56,26 @@ public class CosmeticArmor implements IPlayerSync {
     }
 
     @Override
+    public void loadSaveData(UUID playerUUID, InputStream in) throws Exception {
+        if(in == null){
+            instance.readCustom(playerUUID, null);
+            return;
+        }
+        instance.readCustom(playerUUID, CompressedStreamTools.readCompressed(in));
+        in.close();
+    }
+
+    @Override
     public void loadFromDB(UUID playerUUID) {
         try {
             Blob blob = DBManager.selectBlob(playerUUID.toString(), tableName);
             if(blob == null){
                 //yes it handles null, it will create empty instance, this is how author did it
-                instance.readCustom(playerUUID, null);
+                loadSaveData(playerUUID, null);
                 return;
             }
 
-            CompoundNBT tag = CompressedStreamTools.readCompressed(blob.getBinaryStream());
-            instance.readCustom(playerUUID, tag);
-
+            loadSaveData(playerUUID, blob.getBinaryStream());
             blob.free();
         } catch (Exception e){
             TBSync.getLOGGER().error("Problem with Cosmetic Armor while loading data");

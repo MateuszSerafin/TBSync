@@ -13,10 +13,12 @@ import pl.techblock.sync.logic.fluxnetworks.FluxNetworks;
 import pl.techblock.sync.logic.forgecapabilities.ForgeCaps;
 import pl.techblock.sync.logic.futurepack.FuturePack;
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 public class PlayerManager {
+
     private static Map<PlayerSync, IPlayerSync> IPlayerSyncMap = new LinkedTreeMap<>();
 
     public static void init(){
@@ -30,10 +32,9 @@ public class PlayerManager {
         IPlayerSyncMap.put(PlayerSync.ForgeCaps, new ForgeCaps());
     }
 
-    public static void saveAll(UUID playerUUID){
-        for (Map.Entry<PlayerSync, IPlayerSync> playerSyncIPlayerSyncEntry : IPlayerSyncMap.entrySet()) {
-            PlayerSync playerSync =  playerSyncIPlayerSyncEntry.getKey();
-            IPlayerSync IPlayerSync = playerSyncIPlayerSyncEntry.getValue();
+    public static void saveSpecificToDB(List<PlayerSync> whichOnes, UUID playerUUID){
+        for (PlayerSync playerSync : whichOnes) {
+            IPlayerSync IPlayerSync = IPlayerSyncMap.get(playerSync);
 
             try {
                 IPlayerSync.saveToDB(playerUUID);
@@ -44,10 +45,10 @@ public class PlayerManager {
         }
     }
 
-    public static void loadAll(UUID playerUUID){
-        for (Map.Entry<PlayerSync, IPlayerSync> playerSyncIPlayerSyncEntry : IPlayerSyncMap.entrySet()) {
-            PlayerSync playerSync =  playerSyncIPlayerSyncEntry.getKey();
-            IPlayerSync IPlayerSync = playerSyncIPlayerSyncEntry.getValue();
+    public static void loadSpecificFromDB(List<PlayerSync> whichOnes, UUID playerUUID){
+        for (PlayerSync playerSync : whichOnes) {
+            IPlayerSync IPlayerSync = IPlayerSyncMap.get(playerSync);
+
             try {
                 IPlayerSync.loadFromDB(playerUUID);
             } catch (Exception e){
@@ -57,10 +58,10 @@ public class PlayerManager {
         }
     }
 
-    public static void cleanUpAll(UUID playerUUID){
-        for (Map.Entry<PlayerSync, IPlayerSync> playerSyncIPlayerSyncEntry : IPlayerSyncMap.entrySet()) {
-            PlayerSync playerSync =  playerSyncIPlayerSyncEntry.getKey();
-            IPlayerSync IPlayerSync = playerSyncIPlayerSyncEntry.getValue();
+    public static void cleanUpSpecific(List<PlayerSync> whichOnes, UUID playerUUID){
+        for (PlayerSync playerSync : whichOnes) {
+            IPlayerSync IPlayerSync = IPlayerSyncMap.get(playerSync);
+
             try {
                 IPlayerSync.cleanup(playerUUID);
             } catch (Exception e){

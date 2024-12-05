@@ -7,10 +7,8 @@ import pl.techblock.sync.db.DBManager;
 import pl.techblock.sync.api.interfaces.IPlayerSync;
 import pl.techblock.sync.mixins.endertanks.EnderTanksAccess;
 import shetiphian.endertanks.common.misc.EnderContainer;
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
+import javax.annotation.Nullable;
+import java.io.*;
 import java.sql.Blob;
 import java.util.Map;
 import java.util.UUID;
@@ -24,11 +22,11 @@ public class EnderTanks implements IPlayerSync {
         DBManager.createTable(tableName);
     }
 
+    @Nullable
     @Override
-    public void saveToDB(UUID playerUUID) {
-        try {
+    public ByteArrayOutputStream getSaveData(UUID playerUUID) throws Exception {
         Map<String, EnderContainer> dataForPlayer = EnderTanksAccess.getDatabase().row(playerUUID.toString());
-        if(dataForPlayer.isEmpty()) return;
+        if(dataForPlayer.isEmpty()) return null;
 
         CompoundNBT fileNBT = new CompoundNBT();
 
@@ -42,16 +40,36 @@ public class EnderTanks implements IPlayerSync {
         try (OutputStream saveTo = new BufferedOutputStream(bos)) {
             CompressedStreamTools.writeCompressed(fileNBT, saveTo);
         }
+        return bos;
+    }
 
-        byte[] compressedData = bos.toByteArray();
-        ByteArrayInputStream bis = new ByteArrayInputStream(compressedData);
-        DBManager.upsertBlob(playerUUID.toString(), tableName, bis);
-        bis.close();
+    @Override
+    public void saveToDB(UUID playerUUID) {
+        try {
+            ByteArrayOutputStream bos = getSaveData(playerUUID);
+            if(bos == null) return;
+            byte[] compressedData = bos.toByteArray();
+            ByteArrayInputStream bis = new ByteArrayInputStream(compressedData);
+            DBManager.upsertBlob(playerUUID.toString(), tableName, bis);
+            bis.close();
         }
         catch (Exception e){
             TBSync.getLOGGER().error(String.format("Problem with EnderTanks while saving data to database %s", playerUUID));
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void loadSaveData(UUID playerUUID, InputStream in) throws Exception {
+        if(in == null) return;
+        CompoundNBT tag = CompressedStreamTools.readCompressed(in);
+
+        for (String code : tag.getAllKeys()) {
+            EnderContainer container = new EnderContainer(playerUUID.toString(), code);
+            container.load(tag.getCompound(code));
+            EnderTanksAccess.getDatabase().put(playerUUID.toString(), code, container);
+        }
+        in.close();
     }
 
     @Override
@@ -61,15 +79,8 @@ public class EnderTanks implements IPlayerSync {
             if(blob == null){
                 return;
             }
-            CompoundNBT tag = CompressedStreamTools.readCompressed(blob.getBinaryStream());
-
-            for (String code : tag.getAllKeys()) {
-                EnderContainer container = new EnderContainer(playerUUID.toString(), code);
-                container.load(tag.getCompound(code));
-                EnderTanksAccess.getDatabase().put(playerUUID.toString(), code, container);
-            }
+            loadSaveData(playerUUID, blob.getBinaryStream());
             blob.free();
-
         } catch (Exception e){
             TBSync.getLOGGER().error(String.format("Problem with EnderTanks while loading data from database %s", playerUUID));
             e.printStackTrace();

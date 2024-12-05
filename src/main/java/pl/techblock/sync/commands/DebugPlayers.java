@@ -7,12 +7,26 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.util.text.StringTextComponent;
 import pl.techblock.sync.api.PlayerManager;
+import pl.techblock.sync.api.enums.PlayerSync;
+import java.util.List;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.UUID;
 
 public class DebugPlayers {
 
+    private List<PlayerSync> synchonizeWhat = new ArrayList<>();
+
     public DebugPlayers(CommandDispatcher<CommandSource> dispatcher){
+        synchonizeWhat.add(PlayerSync.AstralResearch);
+        synchonizeWhat.add(PlayerSync.FluxNetworks);
+        synchonizeWhat.add(PlayerSync.CosmeticArmor);
+        synchonizeWhat.add(PlayerSync.FuturePack);
+        synchonizeWhat.add(PlayerSync.EnderStorage);
+        synchonizeWhat.add(PlayerSync.EnderChests);
+        synchonizeWhat.add(PlayerSync.EnderTanks);
+        synchonizeWhat.add(PlayerSync.ForgeCaps);
+
         dispatcher.register(
                 Commands.literal("debugSavePlayer")
                         .requires(source -> source.hasPermission(2))
@@ -50,7 +64,7 @@ public class DebugPlayers {
             commandContext.getSource().sendFailure(new StringTextComponent("Wrong uuid"));
             return 1;
         }
-        PlayerManager.saveAll(uuid);
+        PlayerManager.saveSpecificToDB(synchonizeWhat, uuid);
         return 0;
     }
 
@@ -60,7 +74,7 @@ public class DebugPlayers {
             commandContext.getSource().sendFailure(new StringTextComponent("Wrong uuid"));
             return 1;
         }
-        PlayerManager.loadAll(uuid);
+        PlayerManager.loadSpecificFromDB(synchonizeWhat, uuid);
         return 0;
     }
 
@@ -70,7 +84,7 @@ public class DebugPlayers {
             commandContext.getSource().sendFailure(new StringTextComponent("Wrong uuid"));
             return 1;
         }
-        PlayerManager.cleanUpAll(uuid);
+        PlayerManager.cleanUpSpecific(synchonizeWhat, uuid);
         return 0;
     }
 }

@@ -4,6 +4,7 @@ import futurepack.common.research.PlayerDataLoader;
 import pl.techblock.sync.TBSync;
 import pl.techblock.sync.db.DBManager;
 import pl.techblock.sync.api.interfaces.IPlayerSync;
+import javax.annotation.Nullable;
 import java.io.*;
 import java.sql.Blob;
 import java.util.UUID;
@@ -17,6 +18,18 @@ public class FuturePack implements IPlayerSync {
     public FuturePack(){
         instance = (IFuturePackCustom) PlayerDataLoader.instance;
         DBManager.createTable(tableName);
+    }
+
+    @Nullable
+    @Override
+    public ByteArrayOutputStream getSaveData(UUID playerUUID) throws Exception {
+        return instance.writeCustom(playerUUID);
+    }
+
+    @Override
+    public void loadSaveData(UUID playerUUID, InputStream in) throws Exception {
+        if(in == null) return;
+        instance.readCustom(playerUUID, in);
     }
 
     @Override

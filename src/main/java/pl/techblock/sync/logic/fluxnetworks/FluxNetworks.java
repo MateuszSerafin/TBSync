@@ -8,10 +8,8 @@ import pl.techblock.sync.db.DBManager;
 import pl.techblock.sync.api.interfaces.IPlayerSync;
 import sonar.fluxnetworks.api.network.IFluxNetwork;
 import sonar.fluxnetworks.common.storage.FluxNetworkData;
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
+import javax.annotation.Nullable;
+import java.io.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,8 +48,7 @@ public class FluxNetworks implements IPlayerSync {
                     INSERT INTO FluxNetworksIDS(userID) VALUES (paramUserID);
                   END IF;
                   SELECT networkID FROM FluxNetworksIDS WHERE userID=paramUserID;
-                 END;
-                //""";
+                 END;""";
 
         try {
             try (PreparedStatement ps = DBManager.getConnectionForNonStandardQuery().prepareStatement(query)) {
@@ -69,16 +66,23 @@ public class FluxNetworks implements IPlayerSync {
         createProcedure();
     }
 
+    @Nullable
+    @Override
+    public ByteArrayOutputStream getSaveData(UUID playerUUID) throws Exception {
+        FluxNetworkData data = FluxNetworkData.get();
+        CompoundNBT tag = ((IFluxNetworksCustom) data).writeCustom(playerUUID);
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        try (OutputStream saveTo = new BufferedOutputStream(bos)) {
+            CompressedStreamTools.writeCompressed(tag, saveTo);
+        }
+        return bos;
+    }
+
     @Override
     public void saveToDB(UUID playerUUID) {
         try {
-            FluxNetworkData data = FluxNetworkData.get();
-            CompoundNBT tag = ((IFluxNetworksCustom) data).writeCustom(playerUUID);
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            try (OutputStream saveTo = new BufferedOutputStream(bos)) {
-                CompressedStreamTools.writeCompressed(tag, saveTo);
-            }
-
+            ByteArrayOutputStream bos = getSaveData(playerUUID);
+            if(bos == null) return;
             byte[] compressedData = bos.toByteArray();
             ByteArrayInputStream bis = new ByteArrayInputStream(compressedData);
             DBManager.upsertBlob(playerUUID.toString(), tableName, bis);
@@ -108,27 +112,30 @@ public class FluxNetworks implements IPlayerSync {
         return toReturn;
     }
 
+    @Override
+    public void loadSaveData(UUID playerUUID, InputStream in) throws Exception {
+        //we need to also preload networks that are available for certain players, the tldr is if networks duplicate there is problem
+        FluxNetworkData data = FluxNetworkData.get();
+
+        List<Integer> aviableNetworksFromSQL = getAvailableNetworksForPlayer(playerUUID);
+
+        ((IFluxNetworksCustom) data).addStaticNetworkIDS(playerUUID, aviableNetworksFromSQL);
+
+        if(in == null) return;
+        CompoundNBT tag = CompressedStreamTools.readCompressed(in);
+        ((IFluxNetworksCustom) data).readCustom(tag);
+        in.close();
+    }
 
     @Override
     public void loadFromDB(UUID playerUUID) {
         try {
-            //we need to also preload networks that are available for certain players, the tldr is if networks duplicate there is problem
-            FluxNetworkData data = FluxNetworkData.get();
-
-            List<Integer> aviableNetworksFromSQL = getAvailableNetworksForPlayer(playerUUID);
-
-            ((IFluxNetworksCustom) data).addStaticNetworkIDS(playerUUID, aviableNetworksFromSQL);
-
-
             Blob blob = DBManager.selectBlob(playerUUID.toString(), tableName);
             if(blob == null){
                 //it can happen, if it's not in db and load is called, like when first time creating an island and it tries to load nothing
                 return;
             }
-
-            CompoundNBT tag = CompressedStreamTools.readCompressed(blob.getBinaryStream());
-            ((IFluxNetworksCustom) data).readCustom(tag);
-
+            loadSaveData(playerUUID, blob.getBinaryStream());
             blob.free();
         } catch (Exception e){
             TBSync.getLOGGER().error("Problem with FluxNetworks while loading data");

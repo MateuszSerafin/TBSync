@@ -19,13 +19,12 @@ public class PartyManager {
         iPartySyncMap.put(PartySync.FTBQuests, new FTBQuests());
     }
 
-    public static void saveAll(UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members){
-        for (Map.Entry<PartySync, IPartySync> partySyncIPartySyncEntry : iPartySyncMap.entrySet()) {
-            PartySync partySync =  partySyncIPartySyncEntry.getKey();
-            IPartySync IPartySync = partySyncIPartySyncEntry.getValue();
+    public static void saveSpecificToDB(List<PartySync> whichOnes, UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members){
+        for (PartySync partySync : whichOnes) {
+            IPartySync IPartySync = iPartySyncMap.get(partySync);
 
             try {
-                IPartySync.saveParty(partyUUID, owner, members);
+                IPartySync.savePartyToDB(partyUUID, owner, members);
             } catch (Exception e){
                 TBSync.getLOGGER().error(String.format("Tried to save party data for %s but failed", partyUUID.toString()));
                 e.printStackTrace();
@@ -33,13 +32,12 @@ public class PartyManager {
         }
     }
 
-    public static void loadAll(UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members){
-        for (Map.Entry<PartySync, IPartySync> partySyncIPartySyncEntry : iPartySyncMap.entrySet()) {
-            PartySync partySync =  partySyncIPartySyncEntry.getKey();
-            IPartySync IPartySync = partySyncIPartySyncEntry.getValue();
+    public static void loadSpecificFromDB(List<PartySync> whichOnes, UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members){
+        for (PartySync partySync : whichOnes) {
+            IPartySync IPartySync = iPartySyncMap.get(partySync);
 
             try {
-                IPartySync.loadParty(partyUUID, owner, members);
+                IPartySync.loadPartyFromDB(partyUUID, owner, members);
             } catch (Exception e){
                 TBSync.getLOGGER().error(String.format("Tried to load party data for %s but failed", partyUUID.toString()));
                 e.printStackTrace();
@@ -47,10 +45,9 @@ public class PartyManager {
         }
     }
 
-    public static void cleanupAll(UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members){
-        for (Map.Entry<PartySync, IPartySync> partySyncIPartySyncEntry : iPartySyncMap.entrySet()) {
-            PartySync partySync =  partySyncIPartySyncEntry.getKey();
-            IPartySync IPartySync = partySyncIPartySyncEntry.getValue();
+    public static void cleanupSpecific(List<PartySync> whichOnes, UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members){
+        for (PartySync partySync : whichOnes) {
+            IPartySync IPartySync = iPartySyncMap.get(partySync);
 
             try {
                 IPartySync.cleanupParty(partyUUID, owner, members);
