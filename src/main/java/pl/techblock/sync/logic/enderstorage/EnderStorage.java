@@ -41,6 +41,7 @@ public class EnderStorage implements IPlayerSync {
         for (Map.Entry<String, AbstractEnderStorage> stringAbstractEnderStorageEntry : getInstance().getStorageMap().entrySet()) {
             AbstractEnderStorage val = stringAbstractEnderStorageEntry.getValue();
             Frequency freq = val.freq;
+            if(freq.getOwner() == null) continue;
             if (!freq.getOwner().equals(playerUUID)) continue;
 
             CompoundNBT saveToThat = new CompoundNBT();

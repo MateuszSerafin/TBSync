@@ -110,6 +110,7 @@ public abstract class FluxNetworksMixin extends WorldSavedData implements IFluxN
         ListNBT list = new ListNBT();
 
         for (IFluxNetwork network : networks.values()) {
+            if(network.getOwnerUUID() == null) continue;
             if(!network.getOwnerUUID().equals(pUUID)) continue;
             CompoundNBT tag = new CompoundNBT();
             network.writeCustomNBT(tag, FluxConstants.TYPE_SAVE_ALL);

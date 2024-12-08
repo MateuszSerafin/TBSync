@@ -7,6 +7,7 @@ import net.minecraft.command.Commands;
 import pl.techblock.sync.api.PartyManager;
 import pl.techblock.sync.api.PartyPlayer;
 import pl.techblock.sync.api.enums.PartySync;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -53,6 +54,16 @@ public class DebugParties {
                 Commands.literal("debugremoveMember")
                         .requires(source -> source.hasPermission(2))
                         .executes(this::removeMember));
+
+        dispatcher.register(
+                Commands.literal("debugmakeBackupParty")
+                        .requires(source -> source.hasPermission(2))
+                        .executes(this::makeBackup));
+
+        dispatcher.register(
+                Commands.literal("debugloadBackupParty")
+                        .requires(source -> source.hasPermission(2))
+                        .executes(this::loadBackup));
     }
 
     private int save(CommandContext<CommandSource> commandContext){
@@ -77,6 +88,24 @@ public class DebugParties {
 
     private int removeMember(CommandContext<CommandSource> commandContext){
         PartyManager.removeMemberFromAll(partyUUID, members.get(0));
+        return 1;
+    }
+
+    public int makeBackup(CommandContext<CommandSource> commandContext){
+        try {
+            PartyManager.makeBackup(synchronizeWhat, partyUUID, owner, members);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return 1;
+    }
+
+    public int loadBackup(CommandContext<CommandSource> commandContext){
+        try {
+            PartyManager.loadBackup(new File("./partybackups/testbackup.bak"), synchronizeWhat, partyUUID, owner, members);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
         return 1;
     }
 }
