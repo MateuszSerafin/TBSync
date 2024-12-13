@@ -9,6 +9,7 @@
     "fluxnetworks.FluxNetworksMixin",
     "cosmeticarmor.CosmeticArmorMixin",
     "futurepack.FuturePackMixin",
+    "futurepack.FPPlanetRegistryMixin",
     "ftb.teams.FTBTeamsMixin",
     "ftb.teams.FTBPartyTeamMixin",
     "ftb.teams.FTBTeamBaseMixin",
