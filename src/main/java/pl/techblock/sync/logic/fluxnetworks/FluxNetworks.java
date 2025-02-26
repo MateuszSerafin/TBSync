@@ -25,7 +25,7 @@ public class FluxNetworks implements IPlayerSync {
 
     private void createSecondTable(){
         try {
-            String query = "CREATE TABLE IF NOT EXISTS FluxNetworksIDS (userID nvarchar(255) PRIMARY KEY, networkID INT AUTO_INCREMENT)";
+            String query = "CREATE TABLE IF NOT EXISTS FluxNetworksIDS (userID nvarchar(255), networkID INT AUTO_INCREMENT PRIMARY KEY)";
 
             try (PreparedStatement ps = DBManager.getConnectionForNonStandardQuery().prepareStatement(query)) {
                 ps.execute();
