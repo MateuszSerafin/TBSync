@@ -10,6 +10,7 @@
     "cosmeticarmor.CosmeticArmorMixin",
     "futurepack.FuturePackMixin",
     "futurepack.FPPlanetRegistryMixin",
+    "futurepack.FuturePackEventHandlerMixin",
     "ftb.teams.FTBTeamsMixin",
     "ftb.teams.FTBPartyTeamMixin",
     "ftb.teams.FTBTeamBaseMixin",
