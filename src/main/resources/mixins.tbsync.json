@@ -11,7 +11,7 @@
     "futurepack.FuturePackMixin",
     "futurepack.FPPlanetRegistryMixin",
     "futurepack.FuturePackEventHandlerMixin",
-    "futurepack.AtmosphereManagerMixin",
+    "futurepack.PoorLifeSupportMixin",
     "ftb.teams.FTBTeamsMixin",
     "ftb.teams.FTBPartyTeamMixin",
     "ftb.teams.FTBTeamBaseMixin",
