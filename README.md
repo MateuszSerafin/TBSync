@@ -1,7 +1,9 @@
+This branch is unmaintained, this was tested on "Space-Tech" modpack it was working. <br>
+However there will be some changes going forward.
 <img src="https://techblock.pl/storage/img/tblogov2svg.svg" width="40" height="40" align="top">Sync
 ================
 This is an API to synchronize mods between servers, we use it for our modpacks<br>
-We also decided to preload player data rather than try loading it after players join
+We also decided to preload player data rather than try loading it after players join <br>
 ## Recommended Usage
 ### Synchronization process
 #### Loading

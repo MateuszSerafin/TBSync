@@ -14,6 +14,6 @@ public class TBSyncConfig {
     }
 
     private static void setupConfig(ForgeConfigSpec.Builder builder) {
-        JBDCString = builder.comment("MariaDB Connection").define("JDBCString", "jdbc:mariadb://(ip of server):3306/(database name)?user=(user)&password=(password)?autoReconnect=true&useUnicode=true&characterEncoding=UTF8");
+        JBDCString = builder.comment("MariaDB Connection").define("JDBCString", "jdbc:mariadb://(ip of server):3306/(database name)?user=(user)&password=(password)&autoReconnect=true&useUnicode=true&characterEncoding=UTF8");
     }
 }

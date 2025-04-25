@@ -17,7 +17,7 @@ public class DBManager {
 
     public static void createTable(String tableName) {
         try {
-            String query = "CREATE TABLE IF NOT EXISTS " + tableName + " (k nvarchar(255) PRIMARY KEY, v longblob())";
+            String query = "CREATE TABLE IF NOT EXISTS " + tableName + " (k nvarchar(255) PRIMARY KEY, v longblob)";
 
             try (PreparedStatement ps = connection.prepareStatement(query)) {
                 ps.execute();
