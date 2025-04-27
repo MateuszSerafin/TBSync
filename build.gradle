@@ -76,10 +76,11 @@ configurations {
     implementation.extendsFrom shade
 }
 
-mixin {
-    add sourceSets.main, 'tbsync.refmap.json'
-    config 'mixins.tbsync.json'
-}
+//It looks like this is not necessary
+//mixin {
+//    add sourceSets.main, 'tbsync.refmap.json'
+//    config 'mixins.tbsync.json'
+//}
 
 dependencies {
     // Specify the version of Minecraft to use.
@@ -105,6 +106,7 @@ dependencies {
     shade 'org.mariadb.jdbc:mariadb-java-client:3.4.1'
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+    compileOnly 'org.yaml:snakeyaml:+'
     compileOnly files("./libs/astralsorcery-1.16.5-1.14.1.jar")
     compileOnly files("./libs/FluxNetworks-1.16.5-6.2.1.14.jar")
     compileOnly files("./libs/CosmeticArmorReworked-1.16.5-v5a.jar")

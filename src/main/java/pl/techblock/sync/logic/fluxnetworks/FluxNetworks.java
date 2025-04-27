@@ -5,7 +5,6 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.CompressedStreamTools;
 import pl.techblock.sync.TBSync;
 import pl.techblock.sync.db.DBManager;
-import pl.techblock.sync.api.interfaces.IPlayerSync;
 import sonar.fluxnetworks.api.network.IFluxNetwork;
 import sonar.fluxnetworks.common.storage.FluxNetworkData;
 import javax.annotation.Nullable;
@@ -15,9 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class FluxNetworks implements IPlayerSync {
-
-    private String tableName = "FluxNetworks";
+public class FluxNetworks {
 
     //Used by procedure in db, i will leave it
     //important thing is there are two tables for this mod
@@ -31,7 +28,7 @@ public class FluxNetworks implements IPlayerSync {
                 ps.execute();
             }
         } catch (Exception e){
-            TBSync.getLOGGER().error(String.format("Unable to create table %s it will definitely cause issues", tableName));
+            TBSync.getLOGGER().error(String.format("Unable to create table %s it will definitely cause issues", networkIDsTable));
             e.printStackTrace();
         }
     }
@@ -61,13 +58,11 @@ public class FluxNetworks implements IPlayerSync {
     }
 
     public FluxNetworks() {
-        DBManager.createTable(tableName);
         createSecondTable();
         createProcedure();
     }
 
     @Nullable
-    @Override
     public ByteArrayOutputStream getSaveData(UUID playerUUID) throws Exception {
         FluxNetworkData data = FluxNetworkData.get();
         CompoundNBT tag = ((IFluxNetworksCustom) data).writeCustom(playerUUID);
@@ -76,22 +71,6 @@ public class FluxNetworks implements IPlayerSync {
             CompressedStreamTools.writeCompressed(tag, saveTo);
         }
         return bos;
-    }
-
-    @Override
-    public void saveToDB(UUID playerUUID) {
-        try {
-            ByteArrayOutputStream bos = getSaveData(playerUUID);
-            if(bos == null) return;
-            byte[] compressedData = bos.toByteArray();
-            ByteArrayInputStream bis = new ByteArrayInputStream(compressedData);
-            DBManager.upsertBlob(playerUUID.toString(), tableName, bis);
-            bis.close();
-        }
-        catch (Exception e){
-            TBSync.getLOGGER().error("Problem with FluxNetworks while saving data");
-            e.printStackTrace();
-        }
     }
 
     private List<Integer> getAvailableNetworksForPlayer(UUID pUUID)  throws SQLException {
@@ -112,7 +91,6 @@ public class FluxNetworks implements IPlayerSync {
         return toReturn;
     }
 
-    @Override
     public void loadSaveData(UUID playerUUID, InputStream in) throws Exception {
         //we need to also preload networks that are available for certain players, the tldr is if networks duplicate there is problem
         FluxNetworkData data = FluxNetworkData.get();
@@ -127,23 +105,6 @@ public class FluxNetworks implements IPlayerSync {
         in.close();
     }
 
-    @Override
-    public void loadFromDB(UUID playerUUID) {
-        try {
-            Blob blob = DBManager.selectBlob(playerUUID.toString(), tableName);
-            if(blob == null){
-                //it can happen, if it's not in db and load is called, like when first time creating an island and it tries to load nothing
-                return;
-            }
-            loadSaveData(playerUUID, blob.getBinaryStream());
-            blob.free();
-        } catch (Exception e){
-            TBSync.getLOGGER().error("Problem with FluxNetworks while loading data");
-            e.printStackTrace();
-        }
-    }
-
-    @Override
     public void cleanup(UUID playerUUID) {
         //this is actually implemented correctly
         //we remove network and leave it in state where actual blocks still are connected to the network but it doesn't exist

@@ -11,22 +11,14 @@ import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fml.server.ServerLifecycleHooks;
 import pl.techblock.sync.TBSync;
-import pl.techblock.sync.db.DBManager;
-import pl.techblock.sync.api.interfaces.IWorldSync;
 import javax.annotation.Nullable;
 import java.io.*;
-import java.sql.Blob;
 
-public class XNetBlob implements IWorldSync {
+public class XNetBlob {
 
-    private String tableName = "XNet";
-
-    public XNetBlob() {
-        DBManager.createTable(tableName);
-    }
+    public XNetBlob() {}
 
     @Nullable
-    @Override
     public ByteArrayOutputStream savePerWorldModData(String worldName) throws Exception {
         CompoundNBT nbt = saveXnetBlobToNbt(worldName);
         if(nbt == null) return null;
@@ -35,42 +27,10 @@ public class XNetBlob implements IWorldSync {
         return out;
     }
 
-    @Override
-    public void savePerWorldModDataToDB(String worldName) throws Exception {
-        try {
-            ByteArrayOutputStream bos = savePerWorldModData(worldName);
-            if(bos == null) return;
-            byte[] compressedData = bos.toByteArray();
-            ByteArrayInputStream bis = new ByteArrayInputStream(compressedData);
-            DBManager.upsertBlob(worldName, tableName, bis);
-            bis.close();
-        }
-        catch (Exception e){
-            TBSync.getLOGGER().error("Problem with XNet while saving data");
-            e.printStackTrace();
-        }
-    }
-
-    @Override
     public void loadPerWorldModData(String worldName, InputStream in) throws Exception {
         if(in == null) return;
         CompoundNBT nbt = CompressedStreamTools.readCompressed(in);
         loadXnetBlob(worldName, nbt);
-    }
-
-    @Override
-    public void loadPerWorldModDataFromDB(String worldName) throws Exception {
-        try {
-            Blob blob = DBManager.selectBlob(worldName, tableName);
-            if(blob == null){
-                return;
-            }
-            loadPerWorldModData(worldName, blob.getBinaryStream());
-            blob.free();
-        } catch (Exception e){
-            TBSync.getLOGGER().error("Problem with Xnet while loading data");
-            e.printStackTrace();
-        }
     }
 
     @Nullable
@@ -108,7 +68,7 @@ public class XNetBlob implements IWorldSync {
         ((IXnetBlobDataCustom) XNetBlobData.get(world)).getWorldBlobMap().put(worldRegistryKey, blob);
         blob.recalculateNetwork();
     }
-    @Override
+
     public void cleanup(String worldName) {
         RegistryKey<World> worldRegistryKey = RegistryKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(worldName));
 

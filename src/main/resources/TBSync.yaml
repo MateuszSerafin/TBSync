@@ -1,0 +1,15 @@
+# SQL is not required for all of the mixins.
+# You do not need to specify it however. When you use some code that requires SQL it will crash whole server (This is intended)
+jbdc: "jdbc:mariadb://(ip of server):3306/(database name)?user=(user)&password=(password)?autoReconnect=true&useUnicode=true&characterEncoding=UTF8"
+
+# Each mixin might behave differently read on github what each does
+Enabledmixins:
+  astral: false
+  cosmeticarmor: false
+  enderchests: false
+  enderstorage: false
+  endertanks: false
+  fluxnetworks: false
+  ftbmixins: false
+  futurepack: false
+  xnet: false

@@ -2,15 +2,11 @@ package pl.techblock.sync.logic.ftb.teams;
 
 import dev.ftb.mods.ftbteams.data.*;
 import pl.techblock.sync.TBSync;
-import pl.techblock.sync.api.PartyPlayer;
-import pl.techblock.sync.api.interfaces.IPartySync;
-import javax.annotation.Nullable;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
+import pl.techblock.sync.utils.PartyPlayer;
 import java.util.List;
 import java.util.UUID;
 
-public class FTBTeamsParty implements IPartySync {
+public class FTBTeamsParty {
 
     private IFTBTeamsCustom giveInstance(){
         return (IFTBTeamsCustom) TeamManager.INSTANCE;
@@ -29,19 +25,7 @@ public class FTBTeamsParty implements IPartySync {
     }
 
     //this one is a funny one it actually kinda does nothing just loads data
-    @Nullable
-    @Override
-    public ByteArrayOutputStream getSavePartyData(UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members) throws Exception {
-        return null;
-    }
-
-    @Override
-    public void savePartyToDB(UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members) throws Exception {
-
-    }
-
-    @Override
-    public void loadPartyData(UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members, @Nullable InputStream in) throws Exception {
+    public void loadPartyData(UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members) throws Exception {
         PartyTeam team = new PartyTeam(TeamManager.INSTANCE);
         ((IFTBTeamBaseCustom) team).setUUID(partyUUID);
         ((IFTBPartyTeamCustom) team).setOwner(owner.playerUUID());
@@ -68,17 +52,11 @@ public class FTBTeamsParty implements IPartySync {
         }
     }
 
-    @Override
-    public void loadPartyFromDB(UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members) throws Exception {
-        loadPartyData(partyUUID, owner, members, null);
-    }
-
     private void cleanupPlayer(PartyPlayer player){
         giveInstance().teamMap().remove(player.playerUUID());
         giveInstance().knownPlayers().remove(player.playerUUID());
     }
 
-    @Override
     public void cleanupParty(UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members) throws Exception {
         giveInstance().teamMap().remove(partyUUID);
         cleanupPlayer(owner);
@@ -87,7 +65,6 @@ public class FTBTeamsParty implements IPartySync {
         }
     }
 
-    @Override
     public void addMember(UUID partyUUID, PartyPlayer who) throws Exception {
         Team party = giveInstance().teamMap().get(partyUUID);
         if(party == null){
@@ -104,7 +81,6 @@ public class FTBTeamsParty implements IPartySync {
         TeamManager.INSTANCE.syncAll();
     }
 
-    @Override
     public void removeMember(UUID partyUUID, PartyPlayer who) throws Exception {
         Team party = giveInstance().teamMap().get(partyUUID);
         if(party == null){

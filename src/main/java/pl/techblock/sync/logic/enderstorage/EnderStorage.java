@@ -10,30 +10,22 @@ import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.INBT;
 import net.minecraft.nbt.ListNBT;
 import pl.techblock.sync.TBSync;
-import pl.techblock.sync.db.DBManager;
-import pl.techblock.sync.api.interfaces.IPlayerSync;
 import javax.annotation.Nullable;
 import java.io.*;
-import java.sql.Blob;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class EnderStorage implements IPlayerSync {
-
-    private String tableName = "EnderStorage";
+public class EnderStorage {
 
     private IEnderStorageCustom getInstance(){
         return  (IEnderStorageCustom) EnderStorageManager.instance(false);
     }
 
-    public EnderStorage() {
-        DBManager.createTable(tableName);
-    }
+    public EnderStorage() {}
 
     @Nullable
-    @Override
     public ByteArrayOutputStream getSaveData(UUID playerUUID) throws Exception {
         //string is something like white,white,white,type=fluid or smh,owner=uuid
         ListNBT nbtListNBT = new ListNBT();
@@ -65,22 +57,6 @@ public class EnderStorage implements IPlayerSync {
         return bos;
     }
 
-    @Override
-    public void saveToDB(UUID playerUUID) {
-        try {
-            ByteArrayOutputStream bos = getSaveData(playerUUID);
-            if(bos == null) return;
-            byte[] compressedData = bos.toByteArray();
-            ByteArrayInputStream bis = new ByteArrayInputStream(compressedData);
-            DBManager.upsertBlob(playerUUID.toString(), tableName, bis);
-            bis.close();
-        } catch (Exception e){
-            TBSync.getLOGGER().error(String.format("Something died with saving enderstorage for %s", playerUUID));
-            e.printStackTrace();
-        }
-    }
-
-    @Override
     public void loadSaveData(UUID playerUUID, InputStream in) throws Exception {
         if(in == null) return;
         CompoundNBT tag = CompressedStreamTools.readCompressed(in);
@@ -117,24 +93,8 @@ public class EnderStorage implements IPlayerSync {
         in.close();
     }
 
-    @Override
-    public void loadFromDB(UUID playerUUID) {
-        try {
-            Blob blob = DBManager.selectBlob(playerUUID.toString(), tableName);
-            if(blob == null){
-                return;
-            }
-            loadSaveData(playerUUID, blob.getBinaryStream());
-            blob.free();
-        } catch (Exception e){
-            TBSync.getLOGGER().error(String.format("Problem with Enderstorage while loading data for %s", playerUUID));
-            e.printStackTrace();
-        }
-    }
-
     //if we remove straight from map it will just create a new instance that has no items,liquids
     //ultra optimized code :5head:
-    @Override
     public void cleanup(UUID playerUUID) {
         List<String> toDel = new ArrayList<>();
         List<AbstractEnderStorage> toDelButStorage = new ArrayList<>();

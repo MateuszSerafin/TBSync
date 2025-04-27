@@ -7,12 +7,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.*;
 
+//This should be used only for cases where there is no alternative (FluxNetworksIDS etc) not to store regular information
 public class DBManager {
 
     private static Connection connection;
 
     public static void init() throws SQLException {
-        connection = DriverManager.getConnection(TBSyncConfig.JBDCString.get());
+        try {
+            connection = DriverManager.getConnection((String) TBSyncConfig.config.get("jbdc"));
+        } catch (Exception e){
+            TBSync.getLOGGER().warn("Unable to connect to SQL, this might cause a crash depending on what mixins you need.");
+        }
     }
 
     public static void createTable(String tableName) {

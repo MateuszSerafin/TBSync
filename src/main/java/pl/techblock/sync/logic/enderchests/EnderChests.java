@@ -3,27 +3,19 @@ package pl.techblock.sync.logic.enderchests;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.CompressedStreamTools;
 import pl.techblock.sync.TBSync;
-import pl.techblock.sync.db.DBManager;
-import pl.techblock.sync.api.interfaces.IPlayerSync;
 import pl.techblock.sync.mixins.enderchests.EnderChestsAccess;
 import javax.annotation.Nullable;
 import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.sql.Blob;
 import java.util.Map;
 import java.util.UUID;
 
-public class EnderChests implements IPlayerSync {
-    //2137 mixins or reflection
-    private String tableName = "EnderChests";
+public class EnderChests {
 
-    public EnderChests() {
-        DBManager.createTable(tableName);
-    }
+    public EnderChests() {}
 
     @Nullable
-    @Override
     public ByteArrayOutputStream getSaveData(UUID playerUUID) throws Exception {
         //crime crime crime
         Map dataForPlayer = EnderChestsAccess.getDatabase().row(playerUUID.toString());
@@ -60,23 +52,6 @@ public class EnderChests implements IPlayerSync {
         }
     }
 
-    @Override
-    public void saveToDB(UUID playerUUID) {
-        try {
-            ByteArrayOutputStream bos = getSaveData(playerUUID);
-            if(bos == null) return;
-            byte[] compressedData = bos.toByteArray();
-            ByteArrayInputStream bis = new ByteArrayInputStream(compressedData);
-            DBManager.upsertBlob(playerUUID.toString(), tableName, bis);
-            bis.close();
-        }
-        catch (Exception e){
-            TBSync.getLOGGER().error("Problem with EnderChests while saving data to database");
-            e.printStackTrace();
-        }
-    }
-
-    @Override
     public void loadSaveData(UUID playerUUID, InputStream in) throws Exception {
         if(in == null) return;
         CompoundNBT tag = CompressedStreamTools.readCompressed(in);
@@ -101,23 +76,6 @@ public class EnderChests implements IPlayerSync {
         in.close();
     }
 
-    @Override
-    public void loadFromDB(UUID playerUUID) {
-        try {
-            Blob blob = DBManager.selectBlob(playerUUID.toString(), tableName);
-            if(blob == null){
-                return;
-            }
-            loadSaveData(playerUUID, blob.getBinaryStream());
-            blob.free();
-        } catch (Exception e){
-            TBSync.getLOGGER().error("Problem with EnderChests while loading data from database");
-            e.printStackTrace();
-        }
-
-    }
-
-    @Override
     public void cleanup(UUID playerUUID) {
         EnderChestsAccess.getDatabase().row(playerUUID.toString()).clear();
     }

@@ -1,21 +1,18 @@
 <img src="https://techblock.pl/storage/img/tblogov2svg.svg" width="40" height="40" align="top">Sync
 ================
-This is an API to synchronize mods between servers, we use it for our modpacks<br>
-We also decided to preload player data rather than try loading it after players join
+This is an API to synchronize mods between servers, we use it for our modpacks <br>
+We also decided to preload player data rather than try loading it after players join. <br>
+
 ## Recommended Usage
-### Synchronization process
-#### Loading
->Load world via your plugin/mod -> Call my Managers (Players, Party, World) to load from DB
-#### Saving
->Call in my managers local backup -> Call in my managers to save to DB -> Call cleanup for each mod used -> Unload world via your plugin/mod
-### Restore from local backup
-#### Full
->Load Backup -> Save to DB
-#### Partial
->Load from db -> Load backup (with the mod that data loss occured as argument) -> save to DB
+After successful run on our "Space-Tech" modpack. I decided to fully remove loading and saving to database from this side. <br>
+You need to write yourself plugin/mod. I recommend to load all player and world and party data before world loads. <br>
+There will be a sample usage of this mod. But it won't be for 1.16.5 and I am in process of writing it. <br>
 
 ## Configuration
->Requires connection to MariaDB, edit config/TBSync.conf and it should be working nothing else is required
+Edit ``TBSync.yaml`` <br>
+Configure SQL database if using FluxNetworks. <br>
+And configure which mixins you want to load. <br>
+At this point you can use it in your mod.
 
 ## Player
 | Mod               | Implementation                                                                                                                                                                                                                                                                                                                                                                 | Can be loaded while player is online                                      |
@@ -47,6 +44,3 @@ We also decided to preload player data rather than try loading it after players 
 Add dependencies to libs folder <br>
 run reobfShadowJar <br>
 .jar should be in build/reobfShadowJar
-
-## Going forward
->This will be rewritten to some kind of commons so it can be used between versions 

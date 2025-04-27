@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "pl.techblock.sync.mixins",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "tbsync.refmap.json",
+  "mixins": [
+    "xnet.XNetBlobDataMixin"
+  ],
+  "client": [],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "minVersion": "0.8"
+}
