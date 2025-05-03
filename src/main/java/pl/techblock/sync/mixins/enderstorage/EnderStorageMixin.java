@@ -2,8 +2,9 @@ package pl.techblock.sync.mixins.enderstorage;
 
 import codechicken.enderstorage.api.AbstractEnderStorage;
 import codechicken.enderstorage.api.EnderStoragePlugin;
+import codechicken.enderstorage.api.StorageType;
 import codechicken.enderstorage.manager.EnderStorageManager;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.CompoundTag;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
@@ -16,16 +17,16 @@ public abstract class EnderStorageMixin implements IEnderStorageCustom {
     //only private player tanks and chests are synchronized
     //prevent loading normal not private frequencies (players will lose items and liquids on those frequencies)
     @Shadow
-    private static Map<EnderStorageManager.StorageType<?>, EnderStoragePlugin<?>> plugins;
+    private static Map<StorageType<?>, EnderStoragePlugin<?>> plugins;
     @Shadow
     private Map<String, AbstractEnderStorage> storageMap;
     @Shadow
-    private Map<EnderStorageManager.StorageType<?>, List<AbstractEnderStorage>> storageList;
+    private Map<StorageType<?>, List<AbstractEnderStorage>> storageList;
     @Shadow
     private List<AbstractEnderStorage> dirtyStorage;
 
     @Shadow
-    private CompoundNBT saveTag;
+    private CompoundTag saveTag;
 
     @Override
     public Map<String, AbstractEnderStorage> getStorageMap() {
@@ -33,20 +34,18 @@ public abstract class EnderStorageMixin implements IEnderStorageCustom {
     }
 
     @Override
-    public Map<EnderStorageManager.StorageType<?>, List<AbstractEnderStorage>> getStorageList() {
+    public Map<StorageType<?>, List<AbstractEnderStorage>> getStorageList() {
         return this.storageList;
     }
 
     //it needs to be initialized otherwise causes crashes getStorage calls it and expects data
     @Overwrite(remap = false)
     private void load(){
-        saveTag =  new CompoundNBT();
+        saveTag =  new CompoundTag();
     }
-
 
     @Overwrite(remap = false)
     private void save(boolean force){
 
     }
-
 }

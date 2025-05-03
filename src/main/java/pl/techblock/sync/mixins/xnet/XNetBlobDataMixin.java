@@ -3,41 +3,42 @@ package pl.techblock.sync.mixins.xnet;
 import mcjty.lib.worlddata.AbstractWorldData;
 import mcjty.xnet.multiblock.WorldBlob;
 import mcjty.xnet.multiblock.XNetBlobData;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.world.World;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
-import pl.techblock.sync.logic.xnet.IXnetBlobDataCustom;
-
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import pl.techblock.sync.logic.xnet.IXNetBlobDataCustom;
 import javax.annotation.Nonnull;
+import java.util.HashMap;
 import java.util.Map;
 
 @Mixin(XNetBlobData.class)
-public abstract class XNetBlobDataMixin extends AbstractWorldData<XNetBlobData> implements IXnetBlobDataCustom {
+public abstract class XNetBlobDataMixin extends AbstractWorldData<XNetBlobData> implements IXNetBlobDataCustom {
 
     @Shadow
     @Final
-    private Map<RegistryKey<World>, WorldBlob> worldBlobMap;
+    private Map<ResourceKey<Level>, WorldBlob> worldBlobMap = new HashMap();
 
-    protected XNetBlobDataMixin(String name) {
-        super(name);
+    //no idea how to overwrite constructor,
+    @Inject(method = "<init>(Lnet/minecraft/nbt/CompoundTag;)V", at = @At(value = "RETURN"), remap = false)
+    private void preventLoadingData(CompoundTag tag, CallbackInfo ci){
+        this.worldBlobMap.clear();
     }
 
     @Override
-    public Map<RegistryKey<World>, WorldBlob> getWorldBlobMap() {
+    public Map<ResourceKey<Level>, WorldBlob> getWorldBlobMap() {
         return worldBlobMap;
     }
 
     @Overwrite(remap = false)
-    public CompoundNBT func_189551_b(@Nonnull CompoundNBT compound) {
-        return new CompoundNBT();
-    }
-
-    @Overwrite(remap = false)
-    public void func_76184_a(CompoundNBT compound) {
-        return;
+    public CompoundTag save(@Nonnull CompoundTag compound, HolderLookup.Provider provider) {
+        return new CompoundTag();
     }
 }

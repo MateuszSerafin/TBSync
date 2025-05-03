@@ -1,8 +1,9 @@
 package pl.techblock.sync.mixins.ftb.teams;
 
+import dev.ftb.mods.ftbteams.api.Team;
+import dev.ftb.mods.ftbteams.data.AbstractTeam;
 import dev.ftb.mods.ftbteams.data.PlayerTeam;
-import dev.ftb.mods.ftbteams.data.Team;
-import dev.ftb.mods.ftbteams.data.TeamManager;
+import dev.ftb.mods.ftbteams.data.TeamManagerImpl;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -11,7 +12,7 @@ import pl.techblock.sync.logic.ftb.teams.IFTBTeamsCustom;
 import java.util.Map;
 import java.util.UUID;
 
-@Mixin(TeamManager.class)
+@Mixin(TeamManagerImpl.class)
 public abstract class FTBTeamsMixin implements IFTBTeamsCustom {
 
     @Shadow
@@ -20,7 +21,7 @@ public abstract class FTBTeamsMixin implements IFTBTeamsCustom {
 
     @Shadow
     @Final
-    Map<UUID, Team> teamMap;
+    Map<UUID, AbstractTeam> teamMap;
 
     //checked it doesn't matter if it's duplicated
     @Shadow
@@ -32,7 +33,7 @@ public abstract class FTBTeamsMixin implements IFTBTeamsCustom {
     }
 
     @Override
-    public Map<UUID, Team> teamMap() {
+    public Map<UUID, AbstractTeam> teamMap() {
         return teamMap;
     }
 

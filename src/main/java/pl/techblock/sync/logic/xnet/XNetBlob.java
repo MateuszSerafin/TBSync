@@ -2,14 +2,14 @@ package pl.techblock.sync.logic.xnet;
 
 import mcjty.xnet.multiblock.WorldBlob;
 import mcjty.xnet.multiblock.XNetBlobData;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.CompressedStreamTools;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.fml.server.ServerLifecycleHooks;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtAccounter;
+import net.minecraft.nbt.NbtIo;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import pl.techblock.sync.TBSync;
 import javax.annotation.Nullable;
 import java.io.*;
@@ -20,24 +20,24 @@ public class XNetBlob {
 
     @Nullable
     public ByteArrayOutputStream savePerWorldModData(String worldName) throws Exception {
-        CompoundNBT nbt = saveXnetBlobToNbt(worldName);
+        CompoundTag nbt = saveXnetBlobToNbt(worldName);
         if(nbt == null) return null;
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        CompressedStreamTools.writeCompressed(nbt, out);
+        NbtIo.writeCompressed(nbt, out);
         return out;
     }
 
     public void loadPerWorldModData(String worldName, InputStream in) throws Exception {
         if(in == null) return;
-        CompoundNBT nbt = CompressedStreamTools.readCompressed(in);
+        CompoundTag nbt = NbtIo.readCompressed(in, NbtAccounter.unlimitedHeap());
         loadXnetBlob(worldName, nbt);
     }
 
     @Nullable
-    private CompoundNBT saveXnetBlobToNbt(String worldName){
-        RegistryKey<World> worldRegistryKey = RegistryKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(worldName));
+    private CompoundTag saveXnetBlobToNbt(String worldName){
+        ResourceKey<Level> worldRegistryKey = ResourceKey.create(Registries.DIMENSION, ResourceLocation.tryParse(worldName));
 
-        ServerWorld world = ServerLifecycleHooks.getCurrentServer().getLevel(worldRegistryKey);
+        Level world = ServerLifecycleHooks.getCurrentServer().getLevel(worldRegistryKey);
         if(world == null){
             TBSync.getLOGGER().error(String.format("Tried to save world %s but it doesn't exist", world));
             return null;
@@ -45,19 +45,18 @@ public class XNetBlob {
         //no idea how to otherwise get instance of that
         XNetBlobData blobData = XNetBlobData.get(world);
         if(blobData == null) return null;
-        WorldBlob blob = ((IXnetBlobDataCustom) blobData).getWorldBlobMap().get(worldRegistryKey);
-
+        WorldBlob blob = ((IXNetBlobDataCustom) blobData).getWorldBlobMap().get(worldRegistryKey);
         if(blob == null) return null;
 
-        CompoundNBT nbt = new CompoundNBT();
+        CompoundTag nbt = new CompoundTag();
         blob.writeToNBT(nbt);
         return nbt;
     }
 
-    private void loadXnetBlob(String worldName, CompoundNBT nbt){
-        RegistryKey<World> worldRegistryKey = RegistryKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(worldName));
+    private void loadXnetBlob(String worldName, CompoundTag nbt){
+        ResourceKey<Level> worldRegistryKey = ResourceKey.create(Registries.DIMENSION, ResourceLocation.tryParse(worldName));
 
-        ServerWorld world = ServerLifecycleHooks.getCurrentServer().getLevel(worldRegistryKey);
+        Level world = ServerLifecycleHooks.getCurrentServer().getLevel(worldRegistryKey);
         if(world == null){
             TBSync.getLOGGER().error(String.format("Tried to load world %s but it doesn't exist", world));
             return;
@@ -65,20 +64,21 @@ public class XNetBlob {
 
         WorldBlob blob = new WorldBlob(worldRegistryKey);
         blob.readFromNBT(nbt);
-        ((IXnetBlobDataCustom) XNetBlobData.get(world)).getWorldBlobMap().put(worldRegistryKey, blob);
+        ((IXNetBlobDataCustom) XNetBlobData.get(world)).getWorldBlobMap().put(worldRegistryKey, blob);
         blob.recalculateNetwork();
     }
 
     public void cleanup(String worldName) {
-        RegistryKey<World> worldRegistryKey = RegistryKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(worldName));
+        ResourceKey<Level> worldRegistryKey = ResourceKey.create(Registries.DIMENSION, ResourceLocation.tryParse(worldName));
 
-        ServerWorld world = ServerLifecycleHooks.getCurrentServer().getLevel(worldRegistryKey);
+
+        Level world = ServerLifecycleHooks.getCurrentServer().getLevel(worldRegistryKey);
         if(world == null){
             TBSync.getLOGGER().error(String.format("Tried to cleanup world %s but it doesn't exist", world));
             return;
         }
         XNetBlobData blobData = XNetBlobData.get(world);
         if(blobData == null) return;
-        ((IXnetBlobDataCustom) blobData).getWorldBlobMap().remove(worldRegistryKey);
+        ((IXNetBlobDataCustom) blobData).getWorldBlobMap().remove(worldRegistryKey);
     }
 }

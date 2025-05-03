@@ -1,9 +1,10 @@
 package pl.techblock.sync.mixins.ftb.quests;
 
 import dev.ftb.mods.ftbquests.FTBQuests;
-import dev.ftb.mods.ftbquests.quest.QuestFile;
+import dev.ftb.mods.ftbquests.quest.BaseQuestFile;
 import dev.ftb.mods.ftbquests.quest.ServerQuestFile;
 import dev.ftb.mods.ftbquests.quest.TeamData;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
@@ -16,7 +17,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Mixin(ServerQuestFile.class)
-public abstract class FTBServerQuestMixin extends QuestFile implements IFTBQuestsFileCustom {
+public abstract class FTBServerQuestMixin extends BaseQuestFile implements IFTBQuestsFileCustom {
 
     @Shadow
     private boolean isLoading;
@@ -30,7 +31,7 @@ public abstract class FTBServerQuestMixin extends QuestFile implements IFTBQuest
         FTBQuests.LOGGER.info("Loading quests from " + this.folder);
         if (Files.exists(this.folder, new LinkOption[0])) {
             this.isLoading = true;
-            this.readDataFull(this.folder);
+            this.readDataFull(this.folder, ServerLifecycleHooks.getCurrentServer().registryAccess());
             this.isLoading = false;
         }
         //past this point it was loading each player data not what i want

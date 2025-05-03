@@ -1,5 +1,8 @@
 package pl.techblock.sync.logic.ftb.teams;
 
+import dev.ftb.mods.ftbteams.api.Team;
+import dev.ftb.mods.ftbteams.api.TeamRank;
+import dev.ftb.mods.ftbteams.api.property.TeamProperties;
 import dev.ftb.mods.ftbteams.data.*;
 import pl.techblock.sync.TBSync;
 import pl.techblock.sync.utils.PartyPlayer;
@@ -9,35 +12,33 @@ import java.util.UUID;
 public class FTBTeamsParty {
 
     private IFTBTeamsCustom giveInstance(){
-        return (IFTBTeamsCustom) TeamManager.INSTANCE;
+        return (IFTBTeamsCustom) TeamManagerImpl.INSTANCE;
     }
 
     private PlayerTeam createPlayerteam(PartyPlayer player){
-        PlayerTeam team = new PlayerTeam(TeamManager.INSTANCE);
-        ((IFTBTeamBaseCustom) team).setUUID(player.playerUUID());
-        team.playerName = player.playerName();
+        PlayerTeam team = new PlayerTeam(TeamManagerImpl.INSTANCE, player.playerUUID());
+        team.setPlayerName(player.playerName());
         giveInstance().teamMap().put(player.playerUUID(), team);
         giveInstance().knownPlayers().put(player.playerUUID(), team);
-        team.setProperty(Team.DISPLAY_NAME, team.playerName);
-        team.setProperty(Team.COLOR, FTBTUtils.randomColor());
+        team.setProperty(TeamProperties.DISPLAY_NAME, team.getPlayerName());
+        team.setProperty(TeamProperties.COLOR, FTBTUtils.randomColor());
         ((IFTBTeamBaseCustom) team).getRanks().put(player.playerUUID(), TeamRank.OWNER);
         return team;
     }
 
     //this one is a funny one it actually kinda does nothing just loads data
     public void loadPartyData(UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members) throws Exception {
-        PartyTeam team = new PartyTeam(TeamManager.INSTANCE);
-        ((IFTBTeamBaseCustom) team).setUUID(partyUUID);
+        PartyTeam team = new PartyTeam(TeamManagerImpl.INSTANCE, partyUUID);
         ((IFTBPartyTeamCustom) team).setOwner(owner.playerUUID());
         giveInstance().teamMap().put(partyUUID, team);
-        team.setProperty(Team.DISPLAY_NAME, String.format("Drużyna gracza %s", owner.playerName()));
-        team.setProperty(Team.COLOR, FTBTUtils.randomColor());
+        team.setProperty(TeamProperties.DISPLAY_NAME, String.format("Drużyna gracza %s", owner.playerName()));
+        team.setProperty(TeamProperties.COLOR, FTBTUtils.randomColor());
 
         PlayerTeam ownerPteam = giveInstance().knownPlayers().get(owner);
         if (ownerPteam == null) {
             ownerPteam = createPlayerteam(owner);
         }
-        ownerPteam.actualTeam = team;
+        ownerPteam.setEffectiveTeam(team);
         ((IFTBTeamBaseCustom) ownerPteam).getRanks().remove(owner.playerUUID());
         ((IFTBTeamBaseCustom) team).getRanks().put(owner.playerUUID(), TeamRank.OWNER);
 
@@ -46,7 +47,7 @@ public class FTBTeamsParty {
             if (pteam == null) {
                 pteam = createPlayerteam(member);
             }
-            pteam.actualTeam = team;
+            pteam.setEffectiveTeam(team);
             ((IFTBTeamBaseCustom) pteam).getRanks().remove(member.playerUUID());
             ((IFTBTeamBaseCustom) team).getRanks().put(member.playerUUID(), TeamRank.MEMBER);
         }
@@ -66,7 +67,7 @@ public class FTBTeamsParty {
     }
 
     public void addMember(UUID partyUUID, PartyPlayer who) throws Exception {
-        Team party = giveInstance().teamMap().get(partyUUID);
+        AbstractTeam party = giveInstance().teamMap().get(partyUUID);
         if(party == null){
             TBSync.getLOGGER().error(String.format("Tried to add member for ftb party team where it does not exist %s", partyUUID));
             return;
@@ -76,9 +77,9 @@ public class FTBTeamsParty {
         if (pteam == null) {
             pteam = createPlayerteam(who);
         }
-        pteam.actualTeam = party;
+        pteam.setEffectiveTeam(party);
         ((IFTBTeamBaseCustom) pteam).getRanks().remove(who.playerUUID());
-        TeamManager.INSTANCE.syncAll();
+        TeamManagerImpl.INSTANCE.syncToAll(party);
     }
 
     public void removeMember(UUID partyUUID, PartyPlayer who) throws Exception {
@@ -90,6 +91,6 @@ public class FTBTeamsParty {
         ((IFTBTeamBaseCustom) party).getRanks().remove(who.playerUUID());
         cleanupPlayer(who);
         createPlayerteam(who);
-        TeamManager.INSTANCE.syncAll();
+        TeamManagerImpl.INSTANCE.syncToAll(party);
     }
 }

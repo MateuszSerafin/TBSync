@@ -3,8 +3,9 @@ package pl.techblock.sync.logic.ftb.quests;
 import dev.ftb.mods.ftblibrary.snbt.SNBTCompoundTag;
 import dev.ftb.mods.ftbquests.quest.ServerQuestFile;
 import dev.ftb.mods.ftbquests.quest.TeamData;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.CompressedStreamTools;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtAccounter;
+import net.minecraft.nbt.NbtIo;
 import javax.annotation.Nullable;
 import java.io.*;
 import java.util.UUID;
@@ -23,33 +24,31 @@ public class FTBQuests {
         TeamData data = getServerQuests().getTeamDataMap().get(partyUUID);
         if (data == null) return null;
 
-        CompoundNBT tag = data.serializeNBT();
+        CompoundTag tag = data.serializeNBT();
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         try (OutputStream saveTo = new BufferedOutputStream(bos)) {
-            CompressedStreamTools.writeCompressed(tag, saveTo);
+            NbtIo.writeCompressed(tag, saveTo);
         }
         return bos;
     }
 
     public void loadPartyData(UUID partyUUID, InputStream in) throws Exception {
         if(in == null) {
-            TeamData data = new TeamData(partyUUID);
-            data.file = ServerQuestFile.INSTANCE;
+            TeamData data = new TeamData(partyUUID, ServerQuestFile.INSTANCE);
             ((IFTBTeamDataCustom) data).setCreatedByMe();
             getServerQuests().getTeamDataMap().put(partyUUID, data);
             return;
         }
-        CompoundNBT nbt = CompressedStreamTools.readCompressed(in);
+        CompoundTag nbt = NbtIo.readCompressed(in, NbtAccounter.unlimitedHeap());
         in.close();
-        TeamData data = new TeamData(partyUUID);
-        data.file = ServerQuestFile.INSTANCE;
+        TeamData data = new TeamData(partyUUID, ServerQuestFile.INSTANCE);
         data.deserializeNBT(SNBTCompoundTag.of(nbt));
         ((IFTBTeamDataCustom) data).setCreatedByMe();
         getServerQuests().getTeamDataMap().put(partyUUID, data);
     }
 
-    public void cleanupParty(UUID partyUUID) throws Exception {
+    public void cleanupParty(UUID partyUUID) {
         getServerQuests().getTeamDataMap().remove(partyUUID);
     }
 }

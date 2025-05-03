@@ -1,12 +1,13 @@
 package pl.techblock.sync.logic.fluxnetworks;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.CompressedStreamTools;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtAccounter;
+import net.minecraft.nbt.NbtIo;
 import pl.techblock.sync.TBSync;
 import pl.techblock.sync.db.DBManager;
-import sonar.fluxnetworks.api.network.IFluxNetwork;
-import sonar.fluxnetworks.common.storage.FluxNetworkData;
+import sonar.fluxnetworks.common.connection.FluxNetwork;
+import sonar.fluxnetworks.common.connection.FluxNetworkData;
 import javax.annotation.Nullable;
 import java.io.*;
 import java.sql.*;
@@ -64,11 +65,12 @@ public class FluxNetworks {
 
     @Nullable
     public ByteArrayOutputStream getSaveData(UUID playerUUID) throws Exception {
-        FluxNetworkData data = FluxNetworkData.get();
-        CompoundNBT tag = ((IFluxNetworksCustom) data).writeCustom(playerUUID);
+        //My IDE screamed at me where infact it was able to cast it before lol
+        Object data = FluxNetworkData.getInstance();
+        CompoundTag tag = ((IFluxNetworksCustom) data).writeCustom(playerUUID);
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         try (OutputStream saveTo = new BufferedOutputStream(bos)) {
-            CompressedStreamTools.writeCompressed(tag, saveTo);
+            NbtIo.writeCompressed(tag, saveTo);
         }
         return bos;
     }
@@ -93,14 +95,14 @@ public class FluxNetworks {
 
     public void loadSaveData(UUID playerUUID, InputStream in) throws Exception {
         //we need to also preload networks that are available for certain players, the tldr is if networks duplicate there is problem
-        FluxNetworkData data = FluxNetworkData.get();
+        Object data = FluxNetworkData.getInstance();
 
         List<Integer> aviableNetworksFromSQL = getAvailableNetworksForPlayer(playerUUID);
 
         ((IFluxNetworksCustom) data).addStaticNetworkIDS(playerUUID, aviableNetworksFromSQL);
 
         if(in == null) return;
-        CompoundNBT tag = CompressedStreamTools.readCompressed(in);
+        CompoundTag tag = NbtIo.readCompressed(in, NbtAccounter.unlimitedHeap());
         ((IFluxNetworksCustom) data).readCustom(tag);
         in.close();
     }
@@ -112,16 +114,16 @@ public class FluxNetworks {
 
         List<Integer> toDelete = new ArrayList<>();
 
-        IFluxNetworksCustom instance = (IFluxNetworksCustom) FluxNetworkData.get();
+        Object instance = FluxNetworkData.getInstance();
 
-        for (Int2ObjectMap.Entry<IFluxNetwork> iFluxNetworkEntry : instance.getNetworks().int2ObjectEntrySet()) {
+        for (Int2ObjectMap.Entry<FluxNetwork> iFluxNetworkEntry : ((IFluxNetworksCustom) instance).getNetworks().int2ObjectEntrySet()) {
             UUID owner = iFluxNetworkEntry.getValue().getOwnerUUID();
             if(!owner.equals(playerUUID)) continue;
             toDelete.add(iFluxNetworkEntry.getIntKey());
         }
 
         for (Integer i : toDelete) {
-            instance.getNetworks().remove(i);
+            ((IFluxNetworksCustom) instance).getNetworks().remove(i);
         }
     }
 }
