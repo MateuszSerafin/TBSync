@@ -8,6 +8,7 @@ Enabledmixins:
   fluxnetworks: false
   ftbmixins: false
   xnet: false
+  ae2: false
 
 Locales:
   #%s is owner

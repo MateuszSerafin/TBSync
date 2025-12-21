@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "pl.techblock.sync.mixins",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "tbsync.refmap.json",
+  "mixins": [
+    "ae2.P2PServiceMixin"
+  ],
+  "client": [],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "minVersion": "0.8"
+}

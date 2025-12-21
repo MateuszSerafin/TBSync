@@ -9,6 +9,7 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import pl.techblock.sync.db.DBManager;
+import pl.techblock.sync.logic.ae2.P2PServiceCustom;
 import pl.techblock.sync.logic.enderstorage.EnderStorage;
 import pl.techblock.sync.logic.fluxnetworks.FluxNetworks;
 import pl.techblock.sync.logic.ftb.quests.FTBQuests;
@@ -47,6 +48,10 @@ public class TBSync {
         if (TBSyncConfig.enabledMixins.get("xnet")) {
             checkIfClassNameIsLoadedInRunTimeIfNotHardCrash("mcjty.xnet.XNet");
             TBSyncAPI.worldSync.add(new XNetBlob());
+        }
+        if(TBSyncConfig.enabledMixins.get("ae2")){
+            checkIfClassNameIsLoadedInRunTimeIfNotHardCrash("appeng.core.AppEngServer");
+            P2PServiceCustom.createP2PTable();
         }
     }
 
