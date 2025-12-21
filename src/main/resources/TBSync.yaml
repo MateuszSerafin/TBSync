@@ -1,10 +1,20 @@
-# SQL is not required for all of the mixins.
-# You do not need to specify it however. When you use some code that requires SQL it will crash whole server (This is intended)
+debug: false
+#Database connection, required for some mods or if you use database to store data
 jbdc: "jdbc:mariadb://(ip of server):3306/(database name)?user=(user)&password=(password)&autoReconnect=true&useUnicode=true&characterEncoding=UTF8"
 
-# Each mixin might behave differently read on github what each does
+# Each mixin might behave differently read on GitHub what each does
 Enabledmixins:
   enderstorage: false
   fluxnetworks: false
   ftbmixins: false
   xnet: false
+
+Locales:
+  #%s is owner
+  FTBTeamNames: "Druzyna Gracza %s"
+  FTBonTransferOwnership: "Nie mozesz tego zrobic"
+  FTBonLeave: "Musisz opuscic wyspe aby to zrobic"
+  FTBonInvite: "Jezeli gracz dolaczy do twojej wyspy zostanie dodany automatycznie"
+  FTBonKick: "Jezeli usuniesz gracza z wyspy stanie sie to automatycznie"
+
+privateFluxNetworksPerPlayer: 4

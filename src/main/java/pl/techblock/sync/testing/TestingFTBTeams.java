@@ -5,7 +5,7 @@ import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import pl.techblock.sync.logic.ftb.teams.FTBTeamsParty;
-import pl.techblock.sync.utils.PartyPlayer;
+import pl.techblock.sync.api.PartyPlayer;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,7 +18,6 @@ public class TestingFTBTeams {
 
     public TestingFTBTeams(CommandDispatcher<CommandSourceStack> dispatcher) {
         //There is no need for saving, teams don't store any data related to quests its separate no need to save
-
         dispatcher.register(
                 Commands.literal("DebugFTBTeamsLoad")
                         .requires(source -> source.hasPermission(2))
@@ -41,38 +40,22 @@ public class TestingFTBTeams {
     }
 
     private int load(CommandContext<CommandSourceStack> commandSource){
-        try {
-            ftbTeams.loadPartyData(teamUUID, owner, members);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        ftbTeams.loadPartyFromDB(teamUUID, owner, members);
         return 1;
     }
 
     private int cleanup(CommandContext<CommandSourceStack> commandSource){
-        try {
-            ftbTeams.cleanupParty(teamUUID, owner, members);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        ftbTeams.cleanUpParty(teamUUID, owner, members);
         return 1;
     }
 
     private int addmember(CommandContext<CommandSourceStack> commandSource){
-        try {
-            ftbTeams.addMember(teamUUID, members.getFirst());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        ftbTeams.addMember(teamUUID, members.getFirst());
         return 1;
     }
 
     private int removemember(CommandContext<CommandSourceStack> commandSource){
-        try {
-            ftbTeams.removeMember(teamUUID, members.getFirst());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        ftbTeams.removeMember(teamUUID, members.getFirst());
         return 1;
     }
 }

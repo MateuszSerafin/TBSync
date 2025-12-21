@@ -10,7 +10,6 @@ import java.util.UUID;
 
 public class TestingFluxNetworks {
 
-    private final File targetFile = new File("FluxNetworksTestData.dat");
     private final FluxNetworks fluxNetworks = new FluxNetworks();
     private final UUID testPlayer = UUID.fromString("81a47002-62ad-3ef3-b860-7ec9deeb7837");
 
@@ -32,31 +31,17 @@ public class TestingFluxNetworks {
     }
 
     private int save(CommandContext<CommandSourceStack> commandSource){
-        try {
-            ByteArrayOutputStream data = fluxNetworks.getSaveData(testPlayer);
-            OutputStream outStream = new FileOutputStream(targetFile);
-            outStream.write(data.toByteArray());
-            outStream.flush();
-            outStream.close();
-            data.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        fluxNetworks.savePlayerToDB(testPlayer);
         return 1;
     }
 
     private int load(CommandContext<CommandSourceStack> commandSource){
-        try {
-            FileInputStream inputStream = new FileInputStream(targetFile);
-            fluxNetworks.loadSaveData(testPlayer, inputStream);
-        } catch (Exception e){
-            e.printStackTrace();
-        }
+        fluxNetworks.loadPlayerFromDB(testPlayer);
         return 1;
     }
 
     private int cleanup(CommandContext<CommandSourceStack> commandSource){
-        fluxNetworks.cleanup(testPlayer);
+        fluxNetworks.playerCleanUp(testPlayer);
         return 1;
     }
 }

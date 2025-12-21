@@ -15,6 +15,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import pl.techblock.sync.TBSyncConfig;
 import pl.techblock.sync.logic.ftb.teams.IFTBPartyTeamCustom;
 import java.util.Collection;
 import java.util.UUID;
@@ -37,7 +38,7 @@ public abstract class FTBPartyTeamMixin extends AbstractTeam implements IFTBPart
     //this synchronization replaces need for invites, joins kicks etc everythings is managed by our islands
     @Inject(method = "transferOwnership", at = @At(value = "HEAD"), remap = false)
     public void onTransferOwnership(CommandSourceStack from, Collection<GameProfile> toProfiles, CallbackInfoReturnable<Integer> ci) {
-        from.sendChatMessage(OutgoingChatMessage.create(PlayerChatMessage.unsigned(from.getPlayer().getUUID(), "Nie mozesz tego zrobic")), false, ChatType.bind(ChatType.CHAT, from.getPlayer()));
+        from.sendChatMessage(OutgoingChatMessage.create(PlayerChatMessage.unsigned(from.getPlayer().getUUID(), TBSyncConfig.locales.get("FTBonTransferOwnership"))), false, ChatType.bind(ChatType.CHAT, from.getPlayer()));
         ci.setReturnValue(0);
         ci.cancel();
     }
@@ -46,7 +47,7 @@ public abstract class FTBPartyTeamMixin extends AbstractTeam implements IFTBPart
     public void onLeave(UUID id, CallbackInfoReturnable<Integer> ci){
         ServerPlayer player = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(id);
         if(player != null){
-            player.sendChatMessage(OutgoingChatMessage.create(PlayerChatMessage.unsigned(player.getUUID(), "Musisz opuscic wyspe aby to zrobic")), false, ChatType.bind(ChatType.CHAT, player));
+            player.sendChatMessage(OutgoingChatMessage.create(PlayerChatMessage.unsigned(player.getUUID(), TBSyncConfig.locales.get("FTBonLeave"))), false, ChatType.bind(ChatType.CHAT, player));
         }
         ci.setReturnValue(0);
         ci.cancel();
@@ -54,14 +55,14 @@ public abstract class FTBPartyTeamMixin extends AbstractTeam implements IFTBPart
 
     @Inject(method = "invite", at = @At(value = "HEAD"), remap = false)
     public void onInvite(ServerPlayer inviter, Collection<GameProfile> profiles, CallbackInfoReturnable<Integer> ci){
-        inviter.sendChatMessage(OutgoingChatMessage.create(PlayerChatMessage.unsigned(inviter.getUUID(), "Jezeli gracz dolaczy do twojej wyspy zostanie dodany automatycznie")), false, ChatType.bind(ChatType.CHAT, inviter));
+        inviter.sendChatMessage(OutgoingChatMessage.create(PlayerChatMessage.unsigned(inviter.getUUID(), TBSyncConfig.locales.get("FTBonInvite"))), false, ChatType.bind(ChatType.CHAT, inviter));
         ci.setReturnValue(0);
         ci.cancel();
     }
 
     @Inject(method = "kick", at = @At(value = "HEAD"), remap = false)
     public void onKick(CommandSourceStack from, Collection<GameProfile> players, CallbackInfoReturnable<Integer> ci){
-        from.sendChatMessage(OutgoingChatMessage.create(PlayerChatMessage.unsigned(from.getPlayer().getUUID(), "Jezeli usuniesz gracza z wyspy stanie sie to automatycznie")), false, ChatType.bind(ChatType.CHAT, from));
+        from.sendChatMessage(OutgoingChatMessage.create(PlayerChatMessage.unsigned(from.getPlayer().getUUID(), TBSyncConfig.locales.get("FTBonKick"))), false, ChatType.bind(ChatType.CHAT, from));
         ci.setReturnValue(0);
         ci.cancel();
     }

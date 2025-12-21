@@ -22,15 +22,22 @@ public class MixinConnector implements IMixinConnector {
             }
 
             Yaml yaml = new Yaml();
-
             InputStream configStream = new FileInputStream(configFile);
 
-            TBSyncConfig.config = yaml.load(configStream);
-
+            Map<String, Object> config = yaml.load(configStream);
             configStream.close();
 
-            System.out.println(TBSyncConfig.config.get("Enabledmixins"));
-            Map<String, Boolean> enabledMixins = (Map<String, Boolean>) TBSyncConfig.config.get("Enabledmixins");
+            TBSyncConfig.dataBaseConnection = (String) config.get("jbdc");
+
+            Map<String, Boolean> enabledMixins = (Map<String, Boolean>) config.get("Enabledmixins");
+            TBSyncConfig.enabledMixins = enabledMixins;
+
+            Map<String, String> locales = (Map<String, String>) config.get("Locales");
+            TBSyncConfig.locales = locales;
+
+            TBSyncConfig.debug = (Boolean) config.get("debug");
+
+            TBSyncConfig.privateFluxNetworksPerPlayer = (Integer) config.get("privateFluxNetworksPerPlayer");
 
             for (Map.Entry<String, Boolean> stringStringEntry : enabledMixins.entrySet()) {
                 if (!stringStringEntry.getValue()) continue;

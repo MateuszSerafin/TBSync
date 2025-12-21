@@ -9,9 +9,8 @@ import java.io.*;
 
 public class TestingXNet {
 
-    private final File targetFile = new File("XNetTestData.dat");
     private final XNetBlob xNetBlob = new XNetBlob();
-    private final String worldName = "minecraft:the_nether";
+    private final String worldName = "minecraft:overworld";
 
 
     public TestingXNet(CommandDispatcher<CommandSourceStack> dispatcher) {
@@ -32,31 +31,17 @@ public class TestingXNet {
     }
 
     private int save(CommandContext<CommandSourceStack> commandSource){
-        try {
-            ByteArrayOutputStream data = xNetBlob.savePerWorldModData(worldName);
-            OutputStream outStream = new FileOutputStream(targetFile);
-            outStream.write(data.toByteArray());
-            outStream.flush();
-            outStream.close();
-            data.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        xNetBlob.savePerWorldModDataToDB(worldName);
         return 1;
     }
 
     private int load(CommandContext<CommandSourceStack> commandSource){
-        try {
-            FileInputStream inputStream = new FileInputStream(targetFile);
-            xNetBlob.loadPerWorldModData(worldName, inputStream);
-        } catch (Exception e){
-            e.printStackTrace();
-        }
+        xNetBlob.loadPerWorldModDataFromDB(worldName);
         return 1;
     }
 
     private int cleanup(CommandContext<CommandSourceStack> commandSource){
-        xNetBlob.cleanup(worldName);
+        xNetBlob.worldCleanUp(worldName);
         return 1;
     }
 }

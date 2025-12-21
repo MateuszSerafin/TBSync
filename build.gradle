@@ -23,14 +23,14 @@ dependencies {
     compileOnly "net.neoforged:neoforge:${neo_version}"
     implementation 'org.mariadb.jdbc:mariadb-java-client:3.4.1'
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
-    implementation 'org.yaml:snakeyaml:+'
+    compileOnly 'org.yaml:snakeyaml:+'
     compileOnly files("./libs/FluxNetworks-1.21.1-8.0.0.jar")
-    compileOnly files("./libs/ftb-library-neoforge-2101.1.12.jar");
-    compileOnly files("./libs/ftb-teams-neoforge-2101.1.2.jar")
+    compileOnly files("./libs/ftb-library-neoforge-2101.1.29.jar");
+    compileOnly files("./libs/ftb-teams-neoforge-2101.1.8.jar")
     compileOnly files("./libs/ftb-quests-neoforge-2101.1.8.jar")
     compileOnly files("./libs/CodeChickenLib-1.21.1-4.6.0.521.jar")
     compileOnly files("./libs/EnderStorage-1.21.1-2.13.0.191.jar")
-    compileOnly files("./libs/mcjtylib-1.21-9.0.8.jar")
+    compileOnly files("./libs/mcjtylib-1.21-9.0.18.jar")
     compileOnly files("./libs/rftoolsbase-1.21-6.0.7.jar")
     compileOnly files("./libs/xnet-1.21-7.0.4.jar")
 }
@@ -75,7 +75,6 @@ tasks.named('jar', Jar).configure {
     }
 }
 
-
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
 }
@@ -90,12 +89,3 @@ shadowJar {
         exclude(dependency("org.slf4j:slf4j-api"))
     }
 }
-'''
-shadowJar {
-    configurations = [project.configurations.Implementation]
-}
-
-reobf {
-    shadowJar { }
-}
-'''

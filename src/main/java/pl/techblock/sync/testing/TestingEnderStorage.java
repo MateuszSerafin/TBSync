@@ -10,7 +10,6 @@ import java.util.UUID;
 
 public class TestingEnderStorage {
 
-    private final File targetFile = new File("EnderStorageTestData.dat");
     private final EnderStorage enderStorage = new EnderStorage();
     private final UUID testPlayer = UUID.fromString("81a47002-62ad-3ef3-b860-7ec9deeb7837");
 
@@ -32,31 +31,17 @@ public class TestingEnderStorage {
     }
 
     private int save(CommandContext<CommandSourceStack> commandSource){
-        try {
-            ByteArrayOutputStream data = enderStorage.getSaveData(testPlayer);
-            OutputStream outStream = new FileOutputStream(targetFile);
-            outStream.write(data.toByteArray());
-            outStream.flush();
-            outStream.close();
-            data.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        enderStorage.savePlayerToDB(testPlayer);
         return 1;
     }
 
     private int load(CommandContext<CommandSourceStack> commandSource){
-        try {
-            FileInputStream inputStream = new FileInputStream(targetFile);
-            enderStorage.loadSaveData(testPlayer, inputStream);
-        } catch (Exception e){
-            e.printStackTrace();
-        }
+        enderStorage.loadPlayerFromDB(testPlayer);
         return 1;
     }
 
     private int cleanup(CommandContext<CommandSourceStack> commandSource){
-        enderStorage.cleanup(testPlayer);
+        enderStorage.playerCleanUp(testPlayer);
         return 1;
     }
 }

@@ -21,8 +21,8 @@ public abstract class FTBTeamDataMixin implements IFTBTeamDataCustom {
         wasCreatedByMe = true;
     }
 
-    @Inject(method = "claimReward", at = @At("HEAD"), remap = false, cancellable = true)
-    public void onClaimReward(UUID player, Reward reward, long date, CallbackInfoReturnable<Boolean> cir) {
+    @Inject(method = "claimReward(Ljava/util/UUID;Ldev/ftb/mods/ftbquests/quest/reward/Reward;J)Z", at = @At("HEAD"), remap = false, cancellable = true)
+    public void claimReward(UUID player, Reward reward, long date, CallbackInfoReturnable<Boolean> cir) {
         if(!this.wasCreatedByMe){
             cir.setReturnValue(false);
             cir.cancel();

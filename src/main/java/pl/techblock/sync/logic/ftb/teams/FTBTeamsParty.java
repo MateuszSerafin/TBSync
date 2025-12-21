@@ -4,37 +4,70 @@ import dev.ftb.mods.ftbteams.api.Team;
 import dev.ftb.mods.ftbteams.api.TeamRank;
 import dev.ftb.mods.ftbteams.api.property.TeamProperties;
 import dev.ftb.mods.ftbteams.data.*;
+import org.jetbrains.annotations.Nullable;
 import pl.techblock.sync.TBSync;
-import pl.techblock.sync.utils.PartyPlayer;
+import pl.techblock.sync.TBSyncConfig;
+import pl.techblock.sync.api.IPartySync;
+import pl.techblock.sync.api.PartyPlayer;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
 
-public class FTBTeamsParty {
+public class FTBTeamsParty implements IPartySync {
 
-    private IFTBTeamsCustom giveInstance(){
-        return (IFTBTeamsCustom) TeamManagerImpl.INSTANCE;
+    //this one is a funny one it actually kinda does nothing just loads data
+    @Override
+    public void savePartyToDB(UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members) {
+        return;
     }
+
+    @Override
+    public void loadPartyFromDB(UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members) {
+        loadParty(partyUUID, owner, members, null);
+    }
+
+    @Override
+    public void cleanUpParty(UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members) {
+        getInstance().teamMap().remove(partyUUID);
+        cleanupPlayer(owner);
+        for (PartyPlayer member : members) {
+            cleanupPlayer(member);
+        }
+    }
+
+    private void cleanupPlayer(PartyPlayer player){
+        getInstance().teamMap().remove(player.playerUUID());
+        getInstance().knownPlayers().remove(player.playerUUID());
+    }
+
 
     private PlayerTeam createPlayerteam(PartyPlayer player){
         PlayerTeam team = new PlayerTeam(TeamManagerImpl.INSTANCE, player.playerUUID());
         team.setPlayerName(player.playerName());
-        giveInstance().teamMap().put(player.playerUUID(), team);
-        giveInstance().knownPlayers().put(player.playerUUID(), team);
+        getInstance().teamMap().put(player.playerUUID(), team);
+        getInstance().knownPlayers().put(player.playerUUID(), team);
         team.setProperty(TeamProperties.DISPLAY_NAME, team.getPlayerName());
         team.setProperty(TeamProperties.COLOR, FTBTUtils.randomColor());
         ((IFTBTeamBaseCustom) team).getRanks().put(player.playerUUID(), TeamRank.OWNER);
         return team;
     }
 
-    //this one is a funny one it actually kinda does nothing just loads data
-    public void loadPartyData(UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members) throws Exception {
+    @Override
+    public @Nullable ByteArrayOutputStream saveParty(UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members) {
+        //this one is a funny one it actually kinda does nothing just loads data
+        return null;
+    }
+
+    @Override
+    public void loadParty(UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members, @Nullable InputStream data) {
         PartyTeam team = new PartyTeam(TeamManagerImpl.INSTANCE, partyUUID);
         ((IFTBPartyTeamCustom) team).setOwner(owner.playerUUID());
-        giveInstance().teamMap().put(partyUUID, team);
-        team.setProperty(TeamProperties.DISPLAY_NAME, String.format("Drużyna gracza %s", owner.playerName()));
+        getInstance().teamMap().put(partyUUID, team);
+        team.setProperty(TeamProperties.DISPLAY_NAME, String.format(TBSyncConfig.locales.get("FTBTeamNames"), owner.playerName()));
         team.setProperty(TeamProperties.COLOR, FTBTUtils.randomColor());
 
-        PlayerTeam ownerPteam = giveInstance().knownPlayers().get(owner);
+        PlayerTeam ownerPteam = getInstance().knownPlayers().get(owner);
         if (ownerPteam == null) {
             ownerPteam = createPlayerteam(owner);
         }
@@ -43,7 +76,7 @@ public class FTBTeamsParty {
         ((IFTBTeamBaseCustom) team).getRanks().put(owner.playerUUID(), TeamRank.OWNER);
 
         for (PartyPlayer member : members) {
-            PlayerTeam pteam = giveInstance().knownPlayers().get(member);
+            PlayerTeam pteam = getInstance().knownPlayers().get(member);
             if (pteam == null) {
                 pteam = createPlayerteam(member);
             }
@@ -53,27 +86,14 @@ public class FTBTeamsParty {
         }
     }
 
-    private void cleanupPlayer(PartyPlayer player){
-        giveInstance().teamMap().remove(player.playerUUID());
-        giveInstance().knownPlayers().remove(player.playerUUID());
-    }
-
-    public void cleanupParty(UUID partyUUID, PartyPlayer owner, List<PartyPlayer> members) throws Exception {
-        giveInstance().teamMap().remove(partyUUID);
-        cleanupPlayer(owner);
-        for (PartyPlayer member : members) {
-            cleanupPlayer(member);
-        }
-    }
-
-    public void addMember(UUID partyUUID, PartyPlayer who) throws Exception {
-        AbstractTeam party = giveInstance().teamMap().get(partyUUID);
+    public void addMember(UUID partyUUID, PartyPlayer who) {
+        AbstractTeam party = getInstance().teamMap().get(partyUUID);
         if(party == null){
-            TBSync.getLOGGER().error(String.format("Tried to add member for ftb party team where it does not exist %s", partyUUID));
+            TBSync.getLogger().error("Tried to add member for ftb party team where it does not exist {} Player-UUID {}", partyUUID.toString(), who.playerUUID().toString());
             return;
         }
         ((IFTBTeamBaseCustom) party).getRanks().put(who.playerUUID(), TeamRank.MEMBER);
-        PlayerTeam pteam = giveInstance().knownPlayers().get(who.playerUUID());
+        PlayerTeam pteam = getInstance().knownPlayers().get(who.playerUUID());
         if (pteam == null) {
             pteam = createPlayerteam(who);
         }
@@ -82,15 +102,19 @@ public class FTBTeamsParty {
         TeamManagerImpl.INSTANCE.syncToAll(party);
     }
 
-    public void removeMember(UUID partyUUID, PartyPlayer who) throws Exception {
-        Team party = giveInstance().teamMap().get(partyUUID);
+    public void removeMember(UUID partyUUID, PartyPlayer who) {
+        Team party = getInstance().teamMap().get(partyUUID);
         if(party == null){
-            TBSync.getLOGGER().error(String.format("Tried to remove member for ftb party team where it does not exist %s", partyUUID));
+            TBSync.getLogger().error("Tried to remove member for ftb party team where it does not exist {} Player-UUID {}", partyUUID.toString(), who.playerUUID().toString());
             return;
         }
         ((IFTBTeamBaseCustom) party).getRanks().remove(who.playerUUID());
         cleanupPlayer(who);
         createPlayerteam(who);
         TeamManagerImpl.INSTANCE.syncToAll(party);
+    }
+
+    private IFTBTeamsCustom getInstance(){
+        return (IFTBTeamsCustom) TeamManagerImpl.INSTANCE;
     }
 }

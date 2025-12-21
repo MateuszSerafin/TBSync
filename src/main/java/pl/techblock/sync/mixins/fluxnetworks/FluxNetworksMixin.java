@@ -101,7 +101,7 @@ public abstract class FluxNetworksMixin extends SavedData implements IFluxNetwor
 
             network.readCustomTag(tag, FluxConstants.NBT_SAVE_ALL);
             if (mNetworks.put(network.getNetworkID(), network) != null) {
-                TBSync.getLOGGER().error("Network IDs are not unique when reading data (FLUX NETWORKS) if that happens there is a problem");
+                TBSync.getLogger().error("Network IDs are not unique when reading data (FLUX NETWORKS) if that happens there is a problem");
             }
         }
     }
