@@ -66,6 +66,7 @@ public class TBSync {
         new TestingFTBTeams(event.getDispatcher());
         new TestingFluxNetworks(event.getDispatcher());
         new TestingEnderStorage(event.getDispatcher());
+        new TestingCurios(event.getDispatcher());
     }
 
     private void checkIfClassNameIsLoadedInRunTimeIfNotHardCrash(String classPath) {
