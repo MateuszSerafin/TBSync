@@ -5,23 +5,32 @@ I am providing in this repo mixins and API where you can synchronize this stuff.
 Warning: I am supporting only mods that are required on our modpacks. Additionally, this does nothing without integrating to your case.
 
 ## Example Usage
-1. Copy Mod to server, start it. Edit ``config/TBSync.yaml``
-2. Enable mixins you want e.g, additionally you might need to configure Database, some mods such as FluxNetworks require that due to my implementation.
+1. Copy Mod to server, start it. Configure ``config/TBSync.yaml``
     ```
-    # SQL is not required for all of the mixins.
-    # You do not need to specify it however. When you use some code that requires SQL it will crash whole server (This is intended)
+    debug: false
     jbdc: "jdbc:mariadb://(ip of server):3306/(database name)?user=(user)&password=(password)&autoReconnect=true&useUnicode=true&characterEncoding=UTF8"
     
-    # Each mixin might behave differently read on github what each does
+    # Each mixin might behave differently read on GitHub what each does
     Enabledmixins:
-      enderstorage: false
-      fluxnetworks: false
-      ftbmixins: false
-      xnet: false
+    enderstorage: false
+    fluxnetworks: false
+    ftbmixins: false
+    xnet: false
+    ae2: false
+    
+    Locales:
+    #%s is owner
+    FTBTeamNames: "Druzyna Gracza %s"
+    FTBonTransferOwnership: "Nie mozesz tego zrobic"
+    FTBonLeave: "Musisz opuscic wyspe aby to zrobic"
+    FTBonInvite: "Jezeli gracz dolaczy do twojej wyspy zostanie dodany automatycznie"
+    FTBonKick: "Jezeli usuniesz gracza z wyspy stanie sie to automatycznie"
+    
+    privateFluxNetworksPerPlayer: 4
     ```
-3. Write mod/plugin that integrates that to your use case. <br>
-   I write test under ``/src/main/java/pl/techblock/sync/testing`` which is a great starting point. <br>
-   In near future I will provide full example on how we use it.
+2. Write mod/plugin that integrates that to your use case. <br>
+   In our case we use this [TBConnector](https://github.com/MateuszSerafin/TBConnector/)
+3. **Should** be working
 
 
 ## Implementation
@@ -42,14 +51,16 @@ Make sure to use correct format for worlds when using my code e.g "minecraft:ove
 
 | Mod          | Implementation                                                                                       | Can load/save/cleanup when player is already on server             | Problems                                                                                                                                                                                                 |
 |--------------|------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| XNet         | Saving, Loading is fully disabled, I load/save data that would be normally done when loading server. | No, chunk reload would be required (or inject code somewhere else) | When cleaning up you can't see network on Controller which is expected but the network still works and stops when chunk is reloaded. (Cleanup should be used after world unload so not a problem anyway) |
+| XNet         | Saving, Loading is fully disabled, I load/save data that would be normally done when loading server. | No, chunk reload would be required | When cleaning up you can't see network on Controller which is expected but the network still works and stops when chunk is reloaded. (Cleanup should be used after world unload so not a problem anyway) |
+
+
+### Misc (data can't be preloaded easily)
+| Mod       | Implementation                                                                                                                                                                           | Can load/save/cleanup when player is already on server | Problems                                                                                                                                                                                                                                                                                                                         |
+|-----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| AE2 - P2P | P2P uses random number generator to assign ID's to P2P tunnels, When collision occurs P2P tunnel dies. Random number generator is replaced with SQL table that is shared between servers | N/A                                                    | Could be implemented in a better way, Database is only queried once per p2p block and once it has it's ID it stores it in block data, current implementation could be laggy as server will wait for database to finish the query blocking the main server thread. At the same time it's only once per block so it should be fine |
 
 ## Building
 Clone <br>
 Add dependencies to libs folder <br>
 run ShadowJar <br>
 .jar should be in build/libs
-
-## Branches
-1.16.5-Forge - Will look at it once we need 1.16.5 version. Should work tho <br>
-1.16.5-Forge-Unmaintained - Original version of this project, was tested on our server but there were significant changes hence it's unmaintained. 

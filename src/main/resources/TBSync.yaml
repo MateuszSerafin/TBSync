@@ -1,5 +1,4 @@
 debug: false
-#Database connection, required for some mods or if you use database to store data
 jbdc: "jdbc:mariadb://(ip of server):3306/(database name)?user=(user)&password=(password)&autoReconnect=true&useUnicode=true&characterEncoding=UTF8"
 
 # Each mixin might behave differently read on GitHub what each does
